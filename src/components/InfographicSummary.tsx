@@ -51,12 +51,31 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
     return `${day} ${month} ${yearBE}`;
   };
 
-  // Calculate 7-day range for WEEKLY mode
+  // Calculate Sunday to Saturday week range for WEEKLY mode
   const getWeeklyRange = (d: Date) => {
-    const end = new Date(d);
-    const start = new Date(d);
-    start.setDate(end.getDate() - 6);
-    return { start, end };
+    const dayOfWeek = d.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    const sunday = new Date(d);
+    sunday.setDate(d.getDate() - dayOfWeek);
+
+    const saturday = new Date(sunday);
+    saturday.setDate(sunday.getDate() + 6);
+
+    return { start: sunday, end: saturday };
+  };
+
+  // Robustly normalize any Date / String representation to YYYY-MM-DD
+  const normalizeTxDate = (val: any): string => {
+    if (!val) return '';
+    if (typeof val === 'string') {
+      return val.slice(0, 10);
+    }
+    if (val instanceof Date) {
+      const y = val.getFullYear();
+      const m = (val.getMonth() + 1).toString().padStart(2, '0');
+      const d = val.getDate().toString().padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    return String(val).slice(0, 10);
   };
 
   // Filter transactions based on period and selectedDate
@@ -70,8 +89,8 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
     const weekEndStr = formatDateKey(weekEnd);
 
     return transactions.filter((tx) => {
-      const txDateStr = typeof tx.transactionDate === 'string' ? tx.transactionDate : '';
-      if (!txDateStr) return true;
+      const txDateStr = normalizeTxDate(tx.transactionDate);
+      if (!txDateStr) return false;
 
       if (period === 'DAILY') {
         return txDateStr === selectedStr;
