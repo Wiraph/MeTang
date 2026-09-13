@@ -48,6 +48,22 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
     }
   }, [defaultAccountId, accounts, isOpen]);
 
+  // Ensure From and To accounts are never the same bank when in TRANSFER mode
+  useEffect(() => {
+    if (type === 'TRANSFER' && accounts.length > 1) {
+      if (fromAccountId && toAccountId && fromAccountId === toAccountId) {
+        const altAccount = accounts.find((a) => a.id !== fromAccountId);
+        if (altAccount) {
+          if (activeSlot === 'from') {
+            setToAccountId(altAccount.id);
+          } else {
+            setFromAccountId(altAccount.id);
+          }
+        }
+      }
+    }
+  }, [type, fromAccountId, toAccountId, activeSlot, accounts]);
+
   // Set default category when type changes
   useEffect(() => {
     if (type !== 'TRANSFER') {
@@ -237,10 +253,14 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
               {accounts.map((acc) => {
                 const isSelected =
                   activeSlot === 'from' ? fromAccountId === acc.id : toAccountId === acc.id;
+                const isOtherSlotSelected =
+                  activeSlot === 'from' ? toAccountId === acc.id : fromAccountId === acc.id;
+
                 return (
                   <button
                     key={acc.id}
                     type="button"
+                    disabled={isOtherSlotSelected}
                     onClick={() => {
                       if (activeSlot === 'from') {
                         setFromAccountId(acc.id);
@@ -251,6 +271,8 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
                     className={`px-2.5 py-1 rounded-lg border-2 border-[#121212] text-xs font-bold transition-all flex items-center gap-1.5 ${
                       isSelected
                         ? 'bg-[#121212] text-white shadow-[2px_2px_0px_#121212]'
+                        : isOtherSlotSelected
+                        ? 'bg-gray-200 text-gray-400 opacity-40 cursor-not-allowed border-gray-300'
                         : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
                     }`}
                   >
