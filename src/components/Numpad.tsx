@@ -60,16 +60,16 @@ export const Numpad: React.FC<NumpadProps> = ({ value, onChange }) => {
             key={key}
             type="button"
             onClick={() => handleKeyPress(key)}
-            className={`h-12 border-2 border-black rounded-xl font-black text-xl flex items-center justify-center transition-all select-none ${
+            className={`h-12 border-2 border-[#121212] rounded-xl font-tabular font-black text-xl flex items-center justify-center transition-all select-none ${
               isActionKey
-                ? 'bg-amber-200 text-black shadow-[2px_2px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
-                : 'bg-white text-black shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000]'
+                ? 'bg-[#FFD02C] text-black shadow-[2px_2px_0px_#121212] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
+                : 'bg-white text-black shadow-[3px_3px_0px_#121212] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#121212]'
             }`}
           >
             {key === 'DEL' ? (
-              <Delete className="w-5 h-5" />
+              <Delete className="w-5 h-5 text-black" />
             ) : key === 'C' ? (
-              <RotateCcw className="w-5 h-5" />
+              <RotateCcw className="w-5 h-5 text-black" />
             ) : (
               key
             )}

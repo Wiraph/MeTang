@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Account, Category, ExtendedTransaction } from '@/types';
-import { RefreshCw, Calendar, PieChart, Wallet, ArrowUpDown, Tag } from 'lucide-react';
+import { RefreshCw, PieChart, Wallet, ArrowUpDown } from 'lucide-react';
 
 interface InfographicSummaryProps {
   accounts: Account[];
@@ -115,7 +115,7 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
     if (categoryShare.items.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-48 text-gray-400 font-bold text-xs">
-          <PieChart className="w-12 h-12 mb-2 stroke-1 opacity-50" />
+          <PieChart className="w-12 h-12 mb-2 stroke-1 opacity-50 text-gray-400" />
           <span>ไม่มีข้อมูลค่าใช้จ่าย</span>
         </div>
       );
@@ -154,7 +154,7 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
         {/* Center label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
           <span className="text-[10px] font-black uppercase text-gray-500">รวมรายจ่าย</span>
-          <span className="text-sm font-black text-black">
+          <span className="font-tabular text-sm font-black text-[#121212]">
             ฿{categoryShare.totalExpenseAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
           </span>
         </div>
@@ -163,18 +163,18 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 font-sans">
       {/* 1. Period Selector Segmented Bar (DAILY | WEEKLY | MONTHLY | YEARLY) */}
-      <div className="grid grid-cols-4 gap-1.5 p-1 bg-white border-2 border-black rounded-xl shadow-[3px_3px_0px_#000]">
+      <div className="grid grid-cols-4 gap-1.5 p-1 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212]">
         {(['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'] as PeriodType[]).map((p) => (
           <button
             key={p}
             type="button"
             onClick={() => setPeriod(p)}
-            className={`py-2 px-1 rounded-lg font-black text-xs uppercase tracking-wider transition-all border border-black ${
+            className={`py-2 px-1 rounded-lg font-black text-xs uppercase tracking-wider transition-all border border-[#121212] ${
               period === p
-                ? 'bg-[#FF5722] text-white shadow-[2px_2px_0px_#000]'
-                : 'bg-white text-black hover:bg-slate-100'
+                ? 'bg-[#FF5722] text-white shadow-[2px_2px_0px_#121212]'
+                : 'bg-white text-[#121212] hover:bg-slate-100'
             }`}
           >
             {p}
@@ -183,7 +183,7 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
       </div>
 
       {/* 2. Period Filter Selector Controls */}
-      <div className="p-3 bg-white border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] flex flex-wrap items-center justify-between gap-2">
+      <div className="p-3 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212] flex flex-wrap items-center justify-between gap-2">
         <div className="flex-1 min-w-[160px]">
           <span className="text-[10px] font-black uppercase text-gray-500 block mb-0.5">
             เลือกช่วงข้อมูล
@@ -193,36 +193,36 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
               type={period === 'YEARLY' ? 'number' : 'month'}
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
-              className="w-full px-3 py-1.5 bg-[#FAF9F6] border-2 border-black rounded-lg text-xs font-bold text-black shadow-[2px_2px_0px_#000] focus:outline-none"
+              className="w-full px-3 py-1.5 bg-[#FAF9F6] border-2 border-[#121212] rounded-lg text-xs font-bold text-[#121212] shadow-[2px_2px_0px_#121212] focus:outline-none"
             />
           </div>
         </div>
 
-        <div className="flex-1 min-w-[140px] px-3 py-1.5 bg-gray-200 border-2 border-black rounded-lg text-xs font-bold text-black flex items-center justify-between shadow-[2px_2px_0px_#000]">
+        <div className="flex-1 min-w-[140px] px-3 py-1.5 bg-gray-200 border-2 border-[#121212] rounded-lg text-xs font-bold text-[#121212] flex items-center justify-between shadow-[2px_2px_0px_#121212]">
           <div>
             <span className="text-[9px] font-black uppercase text-gray-600 block">SHOWING</span>
-            <span className="truncate block">{formatPeriodTitle()}</span>
+            <span className="truncate block font-bold">{formatPeriodTitle()}</span>
           </div>
         </div>
 
         <button
           type="button"
           onClick={() => setSelectedMonth(new Date().toISOString().slice(0, 7))}
-          className="w-9 h-9 border-2 border-black bg-white rounded-lg flex items-center justify-center shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+          className="w-9 h-9 border-2 border-[#121212] bg-white rounded-lg flex items-center justify-center shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
           title="Reset filter"
         >
-          <RefreshCw className="w-4 h-4 text-black" />
+          <RefreshCw className="w-4 h-4 text-[#121212]" />
         </button>
       </div>
 
       {/* 3. Infographic Two-Column / Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
         {/* Left Card: CATEGORY SHARE */}
-        <div className="md:col-span-6 bg-white border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0px_#000] flex flex-col justify-between">
+        <div className="md:col-span-6 bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212] flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-2 border-b-2 border-black pb-2.5 mb-2">
-              <PieChart className="w-5 h-5 text-black" />
-              <h3 className="text-sm font-black uppercase tracking-wider text-black">
+            <div className="flex items-center gap-2 border-b-2 border-[#121212] pb-2.5 mb-2">
+              <PieChart className="w-5 h-5 text-[#121212]" />
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#121212]">
                 CATEGORY SHARE
               </h3>
             </div>
@@ -235,13 +235,13 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
           <div className="mt-4 pt-3 border-t border-gray-200">
             <div className="flex flex-wrap gap-2">
               {categoryShare.items.map((cat, idx) => (
-                <div key={idx} className="flex items-center gap-1.5 text-xs font-bold text-black">
+                <div key={idx} className="flex items-center gap-1.5 text-xs font-bold text-[#121212]">
                   <div
-                    className="w-3 h-3 rounded-sm border border-black flex-shrink-0"
+                    className="w-3 h-3 rounded-sm border border-[#121212] flex-shrink-0"
                     style={{ backgroundColor: cat.color }}
                   />
                   <span>{cat.name}</span>
-                  <span className="text-gray-500 text-[10px]">
+                  <span className="font-tabular text-gray-500 text-[10px]">
                     ({cat.percentage.toFixed(0)}%)
                   </span>
                 </div>
@@ -253,10 +253,10 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
         {/* Right Stack: ACCOUNT BALANCE & TOP EXPENSES */}
         <div className="md:col-span-6 space-y-4">
           {/* ACCOUNT BALANCE Card */}
-          <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0px_#000]">
-            <div className="flex items-center gap-2 border-b-2 border-black pb-2.5 mb-3">
-              <Wallet className="w-5 h-5 text-black" />
-              <h3 className="text-sm font-black uppercase tracking-wider text-black">
+          <div className="bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212]">
+            <div className="flex items-center gap-2 border-b-2 border-[#121212] pb-2.5 mb-3">
+              <Wallet className="w-5 h-5 text-[#121212]" />
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#121212]">
                 ACCOUNT BALANCE
               </h3>
             </div>
@@ -277,14 +277,14 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <div
-                        className="w-2.5 h-2.5 rounded-full border border-black flex-shrink-0"
+                        className="w-2.5 h-2.5 rounded-full border border-[#121212] flex-shrink-0"
                         style={{ backgroundColor: acc.color }}
                       />
-                      <span className="font-bold text-xs uppercase tracking-tight text-black truncate">
+                      <span className="font-bold text-xs uppercase tracking-tight text-[#121212] truncate">
                         {acc.name}
                       </span>
                     </div>
-                    <span className="font-black text-xs text-black flex-shrink-0">
+                    <span className="font-tabular font-black text-xs text-[#121212] flex-shrink-0">
                       {formatted}
                     </span>
                   </div>
@@ -294,10 +294,10 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
           </div>
 
           {/* TOP EXPENSES Card */}
-          <div className="bg-white border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0px_#000]">
-            <div className="flex items-center gap-2 border-b-2 border-black pb-2.5 mb-3">
-              <ArrowUpDown className="w-5 h-5 text-black" />
-              <h3 className="text-sm font-black uppercase tracking-wider text-black">
+          <div className="bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212]">
+            <div className="flex items-center gap-2 border-b-2 border-[#121212] pb-2.5 mb-3">
+              <ArrowUpDown className="w-5 h-5 text-[#121212]" />
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#121212]">
                 TOP EXPENSES
               </h3>
             </div>
@@ -319,21 +319,21 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
                   return (
                     <div
                       key={tx.id || idx}
-                      className="flex items-center justify-between p-2 rounded-xl border border-black bg-[#FAF9F6] shadow-[2px_2px_0px_#000]"
+                      className="flex items-center justify-between p-2 rounded-xl border-2 border-[#121212] bg-[#FAF9F6] shadow-[2px_2px_0px_#121212]"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-4 h-4 rounded-sm border border-black bg-[#FF5722] flex-shrink-0" />
+                        <div className="w-4 h-4 rounded-sm border border-[#121212] bg-[#FF5722] flex-shrink-0" />
                         <div className="min-w-0">
-                          <div className="font-bold text-xs text-black truncate">
+                          <div className="font-extrabold text-xs text-[#121212] truncate">
                             {tx.category?.name || tx.note || 'อื่นๆ'}
                           </div>
-                          <div className="text-[10px] font-semibold text-gray-500 truncate">
+                          <div className="text-[10px] font-bold text-gray-500 truncate">
                             {tx.fromAccount?.name || 'Wallet'}
                           </div>
                         </div>
                       </div>
 
-                      <div className="font-black text-xs text-black flex-shrink-0">
+                      <div className="font-tabular font-black text-xs text-[#121212] flex-shrink-0">
                         {formattedAmt}
                       </div>
                     </div>

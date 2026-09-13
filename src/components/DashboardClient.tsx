@@ -130,28 +130,28 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F3EF] text-black pb-28">
+    <div className="min-h-screen bg-[#F4F3EF] text-[#121212] pb-28 font-sans">
       {/* Top Header & Net Worth Container */}
       <header className="max-w-xl mx-auto px-4 pt-6 pb-2">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-black text-xl shadow-[3px_3px_0px_#FF5722]">
+          <div className="flex items-center gap-2.5">
+            <div className="w-10 h-10 rounded-xl bg-[#121212] text-white flex items-center justify-center font-black text-xl shadow-[3px_3px_0px_#FF5722]">
               M
             </div>
             <div>
-              <h1 className="text-xl font-black uppercase tracking-tight">MeTang</h1>
+              <h1 className="text-xl font-black uppercase tracking-tight text-[#121212]">MeTang</h1>
               <p className="text-[11px] font-bold text-gray-500">Zero-Friction Finance</p>
             </div>
           </div>
 
           {/* View Switcher: Dashboard vs Infographic */}
-          <div className="flex items-center p-1 bg-white border-2 border-black rounded-xl shadow-[2px_2px_0px_#000]">
+          <div className="flex items-center p-1 bg-white border-2 border-[#121212] rounded-xl shadow-[2px_2px_0px_#121212]">
             <button
               type="button"
               onClick={() => setActiveTab('dashboard')}
               className={`px-2.5 py-1 rounded-lg text-xs font-black flex items-center gap-1 transition-all ${
                 activeTab === 'dashboard'
-                  ? 'bg-black text-white shadow-[1px_1px_0px_#000]'
+                  ? 'bg-[#121212] text-white shadow-[1px_1px_0px_#121212]'
                   : 'text-gray-600 hover:text-black'
               }`}
             >
@@ -163,7 +163,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
               onClick={() => setActiveTab('infographic')}
               className={`px-2.5 py-1 rounded-lg text-xs font-black flex items-center gap-1 transition-all ${
                 activeTab === 'infographic'
-                  ? 'bg-[#FF5722] text-white shadow-[1px_1px_0px_#000]'
+                  ? 'bg-[#FF5722] text-white shadow-[1px_1px_0px_#121212]'
                   : 'text-gray-600 hover:text-black'
               }`}
             >
@@ -174,14 +174,14 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         </div>
 
         {/* Total Net Worth Card */}
-        <div className="p-5 rounded-2xl border-2 border-black bg-[#FFD02C] shadow-[4px_4px_0px_#000] relative overflow-hidden">
-          <div className="text-xs font-black uppercase text-black/70 tracking-wider mb-1">
+        <div className="p-5 rounded-2xl border-2 border-[#121212] bg-[#FFD02C] shadow-[4px_4px_0px_#121212] relative overflow-hidden">
+          <div className="text-[11px] font-extrabold uppercase text-[#121212]/80 tracking-wider mb-1">
             Total Net Worth
           </div>
-          <div className="text-3xl sm:text-4xl font-black text-black tracking-tight">
+          <div className="font-tabular text-3xl sm:text-4xl font-black text-[#121212] tracking-tight">
             {formattedNetWorth}
           </div>
-          <div className="mt-2 flex items-center gap-2 text-xs font-bold text-black/80">
+          <div className="mt-2 flex items-center gap-2 text-xs font-bold text-[#121212]/80">
             <Wallet className="w-4 h-4" />
             <span>Across {state.accounts.length} Wallets</span>
           </div>
@@ -203,10 +203,10 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
             {/* Account Balances Grid (No horizontal scrolling) */}
             <section>
               <div className="flex items-center justify-between mb-2.5">
-                <h2 className="text-sm font-black uppercase tracking-wider text-black">
+                <h2 className="text-xs font-black uppercase tracking-wider text-[#121212]">
                   Wallets & Accounts ({state.accounts.length})
                 </h2>
-                <span className="text-[11px] font-bold text-gray-500">All View</span>
+                <span className="text-[11px] font-extrabold text-gray-500">All View</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {state.accounts.map((acc) => (
@@ -216,14 +216,14 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
             </section>
 
             {/* Recent Activity List */}
-            <section className="bg-white border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0px_#000]">
-              <h2 className="text-sm font-black uppercase tracking-wider text-black mb-3">
+            <section className="bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212]">
+              <h2 className="text-xs font-black uppercase tracking-wider text-[#121212] mb-3">
                 Recent Activity
               </h2>
 
               {state.transactions.length === 0 ? (
                 <div className="py-8 text-center text-gray-500 font-bold text-xs">
-                  No transactions recorded yet. Tap <span className="text-black">+</span> below!
+                  No transactions recorded yet. Tap <span className="text-black font-black">+</span> below!
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -246,7 +246,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
                             return (
                               <div
                                 key={tx.id}
-                                className="flex items-center justify-between p-2.5 rounded-xl border border-black bg-[#FAF9F6] shadow-[2px_2px_0px_#000]"
+                                className="flex items-center justify-between p-2.5 rounded-xl border-2 border-[#121212] bg-[#FAF9F6] shadow-[2px_2px_0px_#121212]"
                               >
                                 <div className="flex items-center gap-3 min-w-0">
                                   <div
@@ -270,13 +270,13 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
                                   </div>
 
                                   <div className="min-w-0">
-                                    <div className="font-bold text-xs text-black truncate">
+                                    <div className="font-extrabold text-xs text-[#121212] truncate">
                                       {tx.note ||
                                         (tx.type === 'TRANSFER'
                                           ? 'Account Transfer'
                                           : tx.category?.name || tx.type)}
                                     </div>
-                                    <div className="text-[10px] text-gray-500 font-semibold truncate flex items-center gap-1">
+                                    <div className="text-[10px] text-gray-500 font-bold truncate flex items-center gap-1">
                                       {tx.type === 'TRANSFER' ? (
                                         <span>
                                           {tx.fromAccount?.name || 'Wallet'} → {tx.toAccount?.name || 'Wallet'}
@@ -292,7 +292,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
 
                                 <div className="text-right flex-shrink-0">
                                   <div
-                                    className={`font-black text-xs ${
+                                    className={`font-tabular font-black text-xs ${
                                       tx.type === 'EXPENSE'
                                         ? 'text-rose-600'
                                         : tx.type === 'INCOME'
@@ -303,7 +303,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
                                     {tx.type === 'EXPENSE' ? '-' : tx.type === 'INCOME' ? '+' : ''}
                                     {formattedAmt}
                                   </div>
-                                  <div className="text-[9px] font-bold text-gray-400 uppercase">
+                                  <div className="text-[9px] font-extrabold text-gray-400 uppercase">
                                     {tx.type}
                                   </div>
                                 </div>
@@ -326,7 +326,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         <button
           type="button"
           onClick={() => setIsDrawerOpen(true)}
-          className="bg-black text-white px-6 py-3.5 rounded-full border-2 border-black font-black text-sm uppercase tracking-wider flex items-center gap-2.5 shadow-[4px_4px_0px_#FF5722] hover:shadow-[5px_5px_0px_#FF5722] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#FF5722] transition-all"
+          className="bg-[#121212] text-white px-6 py-3.5 rounded-full border-2 border-[#121212] font-black text-sm uppercase tracking-wider flex items-center gap-2.5 shadow-[4px_4px_0px_#FF5722] hover:shadow-[5px_5px_0px_#FF5722] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#FF5722] transition-all"
         >
           <Plus className="w-5 h-5 text-[#FF5722] stroke-[3]" />
           <span>Quick Entry</span>
