@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Account, Category, ExtendedTransaction } from '@/types';
-import { RefreshCw, PieChart, Wallet, ArrowUpDown, Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { RefreshCw, PieChart, Wallet, ArrowUpDown, Calendar as CalendarIcon, ChevronLeft, ChevronRight, X, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
 interface InfographicSummaryProps {
   accounts: Account[];
@@ -30,6 +30,8 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
   const [period, setPeriod] = useState<PeriodType>('MONTHLY');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isPickerOpen, setIsPickerOpen] = useState<boolean>(false);
+  const [chartType, setChartType] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
+  const [topTxType, setTopTxType] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
 
   // View state for date/month navigation in picker
   const [viewYear, setViewYear] = useState<number>(new Date().getFullYear());
@@ -105,18 +107,40 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
     });
   }, [transactions, period, selectedDate]);
 
-  // Calculate Category Share (Expenses grouped by category)
+  // Total Income vs Total Expense Summary
+  const totals = useMemo(() => {
+    let income = 0;
+    let expense = 0;
+
+    filteredTransactions.forEach((tx) => {
+      const amt = parseFloat(tx.amount || '0');
+      if (tx.type === 'INCOME') income += amt;
+      if (tx.type === 'EXPENSE') expense += amt;
+    });
+
+    return {
+      income,
+      expense,
+      net: income - expense,
+      count: filteredTransactions.length,
+    };
+  }, [filteredTransactions]);
+
+  // Calculate Category Share for both Expense and Income
   const categoryShare = useMemo(() => {
-    const expenseTxs = filteredTransactions.filter((tx) => tx.type === 'EXPENSE');
+    const targetTxs = filteredTransactions.filter((tx) => tx.type === chartType);
     const categoryTotals: { [name: string]: { amount: number; color: string } } = {};
 
-    const palette = ['#FF5722', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#64748B'];
-    let paletteIdx = 0;
-    let totalExpenseAmount = 0;
+    const expensePalette = ['#FF5722', '#F59E0B', '#EC4899', '#8B5CF6', '#3B82F6', '#64748B'];
+    const incomePalette = ['#10B981', '#06B6D4', '#3B82F6', '#8B5CF6', '#F59E0B', '#EC4899'];
+    const palette = chartType === 'EXPENSE' ? expensePalette : incomePalette;
 
-    expenseTxs.forEach((tx) => {
+    let paletteIdx = 0;
+    let totalAmount = 0;
+
+    targetTxs.forEach((tx) => {
       const amt = parseFloat(tx.amount || '0');
-      totalExpenseAmount += amt;
+      totalAmount += amt;
 
       const catName = tx.category?.name || 'อื่นๆ';
       if (!categoryTotals[catName]) {
@@ -133,40 +157,39 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
       name,
       amount: data.amount,
       color: data.color,
-      percentage: totalExpenseAmount > 0 ? (data.amount / totalExpenseAmount) * 100 : 0,
+      percentage: totalAmount > 0 ? (data.amount / totalAmount) * 100 : 0,
     }));
 
     items.sort((a, b) => b.amount - a.amount);
-    return { items, totalExpenseAmount };
-  }, [filteredTransactions]);
+    return { items, totalAmount };
+  }, [filteredTransactions, chartType]);
 
-  // Top 5 Expenses
-  const topExpenses = useMemo(() => {
-    const expenseTxs = filteredTransactions.filter((tx) => tx.type === 'EXPENSE');
-    const sorted = [...expenseTxs].sort((a, b) => parseFloat(b.amount) - parseFloat(a.amount));
+  // Top Transactions list (Expense or Income)
+  const topTransactions = useMemo(() => {
+    const targetTxs = filteredTransactions.filter((tx) => tx.type === topTxType);
+    const sorted = [...targetTxs].sort((a, b) => parseFloat(b.amount) - parseFloat(a.amount));
     return sorted.slice(0, 5);
-  }, [filteredTransactions]);
+  }, [filteredTransactions, topTxType]);
 
   // Dynamic Header Title & Active Showing Label
   const getFilterLabels = () => {
     const yearBE = selectedDate.getFullYear() + 543;
     const monthFull = THAI_MONTHS_FULL[selectedDate.getMonth()];
-    const monthShort = THAI_MONTHS_SHORT[selectedDate.getMonth()];
 
     if (period === 'DAILY') {
       const label = formatThaiDate(selectedDate);
-      return { buttonText: label, showingText: label, statTitle: 'DAILY EXPENSE' };
+      return { buttonText: label, showingText: label, statPrefix: 'DAILY' };
     } else if (period === 'WEEKLY') {
       const { start, end } = getWeeklyRange(selectedDate);
       const buttonText = formatThaiDate(selectedDate);
       const showingText = `${formatThaiDate(start)} - ${formatThaiDate(end)}`;
-      return { buttonText, showingText, statTitle: 'WEEKLY EXPENSE' };
+      return { buttonText, showingText, statPrefix: 'WEEKLY' };
     } else if (period === 'MONTHLY') {
       const label = `${monthFull} ${yearBE}`;
-      return { buttonText: label, showingText: label, statTitle: 'MONTHLY EXPENSE' };
+      return { buttonText: label, showingText: label, statPrefix: 'MONTHLY' };
     } else {
       const label = `ปี ${yearBE}`;
-      return { buttonText: label, showingText: label, statTitle: 'YEARLY EXPENSE' };
+      return { buttonText: label, showingText: label, statPrefix: 'YEARLY' };
     }
   };
 
@@ -186,7 +209,7 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
       return (
         <div className="flex flex-col items-center justify-center h-48 text-gray-400 font-bold text-xs">
           <PieChart className="w-12 h-12 mb-2 stroke-1 opacity-50 text-gray-400" />
-          <span>ไม่มีข้อมูลค่าใช้จ่ายช่วงนี้</span>
+          <span>ไม่มีข้อมูล{chartType === 'EXPENSE' ? 'ค่าใช้จ่าย' : 'รายรับ'}ช่วงนี้</span>
         </div>
       );
     }
@@ -222,37 +245,34 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
         </svg>
 
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-          <span className="text-[10px] font-black uppercase text-gray-500">รวมรายจ่าย</span>
-          <span className="font-tabular text-sm font-black text-[#121212]">
-            ฿{categoryShare.totalExpenseAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+          <span className="text-[10px] font-black uppercase text-gray-500">
+            {chartType === 'EXPENSE' ? 'รวมรายจ่าย' : 'รวมรายรับ'}
+          </span>
+          <span className={`font-tabular text-sm font-black ${chartType === 'EXPENSE' ? 'text-[#FF5722]' : 'text-[#10B981]'}`}>
+            ฿{categoryShare.totalAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
           </span>
         </div>
       </div>
     );
   };
 
-  // Helper to generate days grid for Calendar (DAILY / WEEKLY)
+  // Calendar Grid (DAILY / WEEKLY)
   const renderCalendarGrid = () => {
     const firstDayOfMonth = new Date(viewYear, viewMonth, 1);
     const lastDayOfMonth = new Date(viewYear, viewMonth + 1, 0);
     const startDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sun
     const daysInMonth = lastDayOfMonth.getDate();
 
-    // Prev month padding
     const prevMonthLastDay = new Date(viewYear, viewMonth, 0).getDate();
     const prevPadding = Array.from({ length: startDayOfWeek }, (_, i) => prevMonthLastDay - startDayOfWeek + i + 1);
-
-    // Current month days
     const currentDays = Array.from({ length: daysInMonth }, (_, i) => i + 1);
 
-    // Next month padding
     const totalCells = prevPadding.length + currentDays.length;
     const nextPaddingCount = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
     const nextPadding = Array.from({ length: nextPaddingCount }, (_, i) => i + 1);
 
     return (
       <div className="space-y-2">
-        {/* Calendar Navigation Header */}
         <div className="flex items-center justify-between bg-slate-100 p-1.5 rounded-xl border-2 border-[#121212] mb-3">
           <button
             type="button"
@@ -287,12 +307,10 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
           </button>
         </div>
 
-        {/* Days of week header */}
         <div className="grid grid-cols-7 gap-1 text-center font-black text-[11px] text-gray-500 uppercase mb-1">
           <span>SU</span><span>MO</span><span>TU</span><span>WE</span><span>TH</span><span>FR</span><span>SA</span>
         </div>
 
-        {/* Calendar days grid */}
         <div className="grid grid-cols-7 gap-1 text-center">
           {prevPadding.map((day, idx) => (
             <div key={'p-' + idx} className="h-9 flex items-center justify-center text-xs font-bold text-gray-300">
@@ -332,11 +350,10 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
     );
   };
 
-  // Helper to render Month Picker (MONTHLY)
+  // Month Picker (MONTHLY)
   const renderMonthPickerGrid = () => {
     return (
       <div className="space-y-3">
-        {/* Year Navigation Header */}
         <div className="flex items-center justify-between bg-slate-100 p-1.5 rounded-xl border-2 border-[#121212] mb-3">
           <button
             type="button"
@@ -357,7 +374,6 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
           </button>
         </div>
 
-        {/* 12 Thai Month Buttons Grid */}
         <div className="grid grid-cols-3 gap-2">
           {THAI_MONTHS_SHORT.map((mName, mIdx) => {
             const isSelected =
@@ -385,7 +401,7 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
     );
   };
 
-  // Helper to render Year Picker (YEARLY)
+  // Year Picker (YEARLY)
   const renderYearPickerGrid = () => {
     const currentYear = new Date().getFullYear();
     const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1, currentYear + 2];
@@ -492,36 +508,90 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
         </div>
       </div>
 
-      {/* 3. Expense Total Summary Hero Pill */}
-      <div className="p-4 bg-white border-2 border-[#121212] rounded-2xl shadow-[4px_4px_0px_#121212] flex items-center justify-between">
-        <div>
-          <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider block">
-            {labels.statTitle}
-          </span>
-          <span className="font-tabular text-2xl sm:text-3xl font-black text-[#FF5722]">
-            ฿{categoryShare.totalExpenseAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-          </span>
+      {/* 3. Hero Financial Summary Cards (Income + Expense + Net Flow) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {/* Income Stat Card */}
+        <div className="p-4 bg-white border-2 border-[#121212] rounded-2xl shadow-[4px_4px_0px_#121212] flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-emerald-600 tracking-wider mb-1">
+              <TrendingDown className="w-3.5 h-3.5 rotate-180" />
+              <span>{labels.statPrefix} INCOME</span>
+            </div>
+            <span className="font-tabular text-xl sm:text-2xl font-black text-[#10B981]">
+              +฿{totals.income.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+            </span>
+          </div>
         </div>
-        <div className="text-right">
-          <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider block">
-            TRANSACTIONS
-          </span>
-          <span className="font-tabular text-xl font-black text-[#121212]">
-            {filteredTransactions.length} items
-          </span>
+
+        {/* Expense Stat Card */}
+        <div className="p-4 bg-white border-2 border-[#121212] rounded-2xl shadow-[4px_4px_0px_#121212] flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-rose-600 tracking-wider mb-1">
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span>{labels.statPrefix} EXPENSE</span>
+            </div>
+            <span className="font-tabular text-xl sm:text-2xl font-black text-[#FF5722]">
+              -฿{totals.expense.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+        </div>
+
+        {/* Net Flow Stat Card */}
+        <div className="p-4 bg-white border-2 border-[#121212] rounded-2xl shadow-[4px_4px_0px_#121212] flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-gray-600 tracking-wider mb-1">
+              <DollarSign className="w-3.5 h-3.5 text-black" />
+              <span>NET CASH FLOW</span>
+            </div>
+            <span
+              className={`font-tabular text-xl sm:text-2xl font-black ${
+                totals.net >= 0 ? 'text-emerald-700' : 'text-rose-700'
+              }`}
+            >
+              {totals.net >= 0 ? '+' : ''}฿{totals.net.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* 4. Infographic Two-Column / Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-        {/* Left Card: CATEGORY SHARE */}
+        {/* Left Card: CATEGORY SHARE (With Expense / Income Switcher) */}
         <div className="md:col-span-6 bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212] flex flex-col justify-between">
           <div>
-            <div className="flex items-center gap-2 border-b-2 border-[#121212] pb-2.5 mb-2">
-              <PieChart className="w-5 h-5 text-[#121212]" />
-              <h3 className="text-xs font-black uppercase tracking-wider text-[#121212]">
-                CATEGORY SHARE
-              </h3>
+            <div className="flex items-center justify-between border-b-2 border-[#121212] pb-2.5 mb-2">
+              <div className="flex items-center gap-2">
+                <PieChart className="w-5 h-5 text-[#121212]" />
+                <h3 className="text-xs font-black uppercase tracking-wider text-[#121212]">
+                  CATEGORY SHARE
+                </h3>
+              </div>
+
+              {/* Toggle Chart Type: Expense vs Income */}
+              <div className="flex items-center p-0.5 bg-slate-100 border border-[#121212] rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setChartType('EXPENSE')}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase transition-all ${
+                    chartType === 'EXPENSE'
+                      ? 'bg-[#FF5722] text-white shadow-[1px_1px_0px_#121212]'
+                      : 'text-gray-600 hover:text-black'
+                  }`}
+                >
+                  Expense
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setChartType('INCOME')}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase transition-all ${
+                    chartType === 'INCOME'
+                      ? 'bg-[#10B981] text-white shadow-[1px_1px_0px_#121212]'
+                      : 'text-gray-600 hover:text-black'
+                  }`}
+                >
+                  Income
+                </button>
+              </div>
             </div>
 
             {/* Donut Visual */}
@@ -547,7 +617,7 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
           </div>
         </div>
 
-        {/* Right Stack: ACCOUNT BALANCE & TOP EXPENSES */}
+        {/* Right Stack: ACCOUNT BALANCE & TOP TRANSACTIONS */}
         <div className="md:col-span-6 space-y-4">
           {/* ACCOUNT BALANCE Card */}
           <div className="bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212]">
@@ -590,22 +660,50 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
             </div>
           </div>
 
-          {/* TOP EXPENSES Card */}
+          {/* TOP TRANSACTIONS Card (Top Expenses vs Top Income) */}
           <div className="bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212]">
-            <div className="flex items-center gap-2 border-b-2 border-[#121212] pb-2.5 mb-3">
-              <ArrowUpDown className="w-5 h-5 text-[#121212]" />
-              <h3 className="text-xs font-black uppercase tracking-wider text-[#121212]">
-                TOP EXPENSES
-              </h3>
+            <div className="flex items-center justify-between border-b-2 border-[#121212] pb-2.5 mb-3">
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="w-5 h-5 text-[#121212]" />
+                <h3 className="text-xs font-black uppercase tracking-wider text-[#121212]">
+                  {topTxType === 'EXPENSE' ? 'TOP EXPENSES' : 'TOP INCOME'}
+                </h3>
+              </div>
+
+              {/* Toggle Top Type */}
+              <div className="flex items-center p-0.5 bg-slate-100 border border-[#121212] rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setTopTxType('EXPENSE')}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase transition-all ${
+                    topTxType === 'EXPENSE'
+                      ? 'bg-[#FF5722] text-white shadow-[1px_1px_0px_#121212]'
+                      : 'text-gray-600 hover:text-black'
+                  }`}
+                >
+                  Expense
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTopTxType('INCOME')}
+                  className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase transition-all ${
+                    topTxType === 'INCOME'
+                      ? 'bg-[#10B981] text-white shadow-[1px_1px_0px_#121212]'
+                      : 'text-gray-600 hover:text-black'
+                  }`}
+                >
+                  Income
+                </button>
+              </div>
             </div>
 
-            {topExpenses.length === 0 ? (
+            {topTransactions.length === 0 ? (
               <div className="py-4 text-center text-gray-400 font-bold text-xs">
-                ไม่มีรายการค่าใช้จ่ายในช่วงเวลานี้
+                ไม่มีรายการ{topTxType === 'EXPENSE' ? 'ค่าใช้จ่าย' : 'รายรับ'}ในช่วงเวลานี้
               </div>
             ) : (
               <div className="space-y-2">
-                {topExpenses.map((tx, idx) => {
+                {topTransactions.map((tx, idx) => {
                   const amt = parseFloat(tx.amount || '0');
                   const formattedAmt = new Intl.NumberFormat('th-TH', {
                     style: 'currency',
@@ -619,19 +717,27 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
                       className="flex items-center justify-between p-2 rounded-xl border-2 border-[#121212] bg-[#FAF9F6] shadow-[2px_2px_0px_#121212]"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-4 h-4 rounded-sm border border-[#121212] bg-[#FF5722] flex-shrink-0" />
+                        <div
+                          className={`w-4 h-4 rounded-sm border border-[#121212] flex-shrink-0 ${
+                            topTxType === 'EXPENSE' ? 'bg-[#FF5722]' : 'bg-[#10B981]'
+                          }`}
+                        />
                         <div className="min-w-0">
                           <div className="font-extrabold text-xs text-[#121212] truncate">
                             {tx.category?.name || tx.note || 'อื่นๆ'}
                           </div>
                           <div className="text-[10px] font-bold text-gray-500 truncate">
-                            {tx.fromAccount?.name || 'Wallet'}
+                            {tx.fromAccount?.name || tx.toAccount?.name || 'Wallet'}
                           </div>
                         </div>
                       </div>
 
-                      <div className="font-tabular font-black text-xs text-[#121212] flex-shrink-0">
-                        {formattedAmt}
+                      <div
+                        className={`font-tabular font-black text-xs flex-shrink-0 ${
+                          topTxType === 'EXPENSE' ? 'text-rose-600' : 'text-emerald-600'
+                        }`}
+                      >
+                        {topTxType === 'EXPENSE' ? '-' : '+'}{formattedAmt}
                       </div>
                     </div>
                   );
@@ -642,11 +748,10 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
         </div>
       </div>
 
-      {/* 5. Custom Neo-Brutalist Date/Month/Year Picker Modal (Matches Screenshots 100%) */}
+      {/* 5. Custom Neo-Brutalist Date/Month/Year Picker Modal */}
       {isPickerOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
           <div className="relative w-full max-w-sm bg-[#FAF9F6] border-4 border-[#121212] rounded-3xl shadow-[8px_8px_0px_#121212] p-5 z-10 flex flex-col">
-            {/* Header */}
             <div className="flex items-center justify-between mb-4 border-b-2 border-[#121212] pb-3">
               <div className="flex items-center gap-2">
                 <CalendarIcon className="w-5 h-5 text-[#FF5722]" />
@@ -667,7 +772,6 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
               </button>
             </div>
 
-            {/* Content Body */}
             <div className="mb-4">
               {period === 'DAILY' || period === 'WEEKLY'
                 ? renderCalendarGrid()
@@ -676,7 +780,6 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
                 : renderYearPickerGrid()}
             </div>
 
-            {/* Modal Actions */}
             <div className="grid grid-cols-2 gap-2 border-t-2 border-[#121212] pt-3">
               <button
                 type="button"
