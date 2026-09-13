@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useOptimistic, useTransition } from 'react';
+import React, { useState, useEffect, useMemo, useOptimistic, useTransition } from 'react';
 import { Account, Category, ExtendedTransaction, TransactionInput } from '@/types';
 import { createTransactionAction } from '@/actions/transactions';
 import { AccountCard } from './AccountCard';
@@ -8,7 +8,8 @@ import { QuickEntryDrawer } from './QuickEntryDrawer';
 import { EditBalancesModal } from './EditBalancesModal';
 import { CategoryIcon } from './CategoryIcon';
 import { InfographicSummary } from './InfographicSummary';
-import { Plus, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Wallet, LayoutGrid, BarChart2, X, Settings } from 'lucide-react';
+import { PinLockScreen } from './PinLockScreen';
+import { Plus, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Wallet, LayoutGrid, BarChart2, X, Settings, Lock } from 'lucide-react';
 
 interface DashboardClientProps {
   initialAccounts: Account[];
@@ -26,11 +27,30 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
   initialCategories,
   initialTransactions,
 }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isEditBalancesOpen, setIsEditBalancesOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'infographic'>('dashboard');
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+
+  // Check PIN session unlock state on client mount
+  useEffect(() => {
+    const unlocked = sessionStorage.getItem('metang_pin_unlocked');
+    if (unlocked === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handlePinSuccess = () => {
+    sessionStorage.setItem('metang_pin_unlocked', 'true');
+    setIsAuthenticated(true);
+  };
+
+  const handleLockApp = () => {
+    sessionStorage.removeItem('metang_pin_unlocked');
+    setIsAuthenticated(false);
+  };
 
   // Optimistic state sync for zero perceived latency (0ms UI update)
   const [state, setOptimisticState] = useOptimistic<DashboardState, TransactionInput>(
@@ -151,6 +171,10 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
 
   const selectedAccountObj = state.accounts.find((a) => a.id === selectedAccountId);
 
+  if (!isAuthenticated) {
+    return <PinLockScreen onSuccess={handlePinSuccess} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#F4F3EF] text-[#121212] pb-28 lg:pb-12 font-sans">
       {/* Container: max-w-xl on mobile, max-w-6xl on desktop */}
@@ -174,6 +198,16 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
 
           {/* Action Header Controls */}
           <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            {/* Lock App Vault Button */}
+            <button
+              type="button"
+              onClick={handleLockApp}
+              className="p-2.5 rounded-xl bg-white border-2 border-[#121212] shadow-[3px_3px_0px_#121212] hover:bg-rose-50 text-[#121212] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+              title="Lock Vault"
+            >
+              <Lock className="w-4 h-4 text-rose-600 stroke-[2.5]" />
+            </button>
+
             {/* View Switcher: Dashboard vs Infographic */}
             <div className="flex items-center p-1 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212]">
               <button
