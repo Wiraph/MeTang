@@ -152,235 +152,259 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
   const selectedAccountObj = state.accounts.find((a) => a.id === selectedAccountId);
 
   return (
-    <div className="min-h-screen bg-[#F4F3EF] text-[#121212] pb-28 font-sans">
-      {/* Top Header & Net Worth Container */}
-      <header className="max-w-xl mx-auto px-4 pt-6 pb-2">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-[#121212] text-white flex items-center justify-center font-black text-xl shadow-[3px_3px_0px_#FF5722]">
+    <div className="min-h-screen bg-[#F4F3EF] text-[#121212] pb-28 lg:pb-12 font-sans">
+      {/* Container: max-w-xl on mobile, max-w-6xl on desktop */}
+      <div className="max-w-xl lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        {/* Top Header */}
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-[#121212] text-white flex items-center justify-center font-black text-2xl shadow-[4px_4px_0px_#FF5722]">
               M
             </div>
             <div>
-              <h1 className="text-xl font-black uppercase tracking-tight text-[#121212]">MeTang</h1>
-              <p className="text-[11px] font-bold text-gray-500">Zero-Friction Finance</p>
+              <h1 className="text-2xl font-black uppercase tracking-tight text-[#121212] flex items-center gap-2">
+                MeTang
+                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-[#FFD02C] border border-[#121212] shadow-[1px_1px_0px_#121212]">
+                  v2.0
+                </span>
+              </h1>
+              <p className="text-xs font-bold text-gray-500">Zero-Friction Finance</p>
             </div>
           </div>
 
-          {/* View Switcher: Dashboard vs Infographic */}
-          <div className="flex items-center p-1 bg-white border-2 border-[#121212] rounded-xl shadow-[2px_2px_0px_#121212]">
+          {/* Action Header Controls */}
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            {/* View Switcher: Dashboard vs Infographic */}
+            <div className="flex items-center p-1 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212]">
+              <button
+                type="button"
+                onClick={() => setActiveTab('dashboard')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-black flex items-center gap-1.5 transition-all border ${
+                  activeTab === 'dashboard'
+                    ? 'bg-[#121212] text-white border-[#121212] shadow-[1px_1px_0px_#121212]'
+                    : 'bg-white text-gray-700 border-transparent hover:text-black'
+                }`}
+              >
+                <LayoutGrid className="w-4 h-4" />
+                <span>Grid</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('infographic')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-black flex items-center gap-1.5 transition-all border ${
+                  activeTab === 'infographic'
+                    ? 'bg-[#FF5722] text-white border-[#121212] shadow-[1px_1px_0px_#121212]'
+                    : 'bg-white text-gray-700 border-transparent hover:text-black'
+                }`}
+              >
+                <BarChart2 className="w-4 h-4" />
+                <span>Infographic</span>
+              </button>
+            </div>
+
+            {/* Desktop Quick Entry Button */}
             <button
               type="button"
-              onClick={() => setActiveTab('dashboard')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-black flex items-center gap-1 transition-all ${
-                activeTab === 'dashboard'
-                  ? 'bg-[#121212] text-white shadow-[1px_1px_0px_#121212]'
-                  : 'text-gray-600 hover:text-black'
-              }`}
+              onClick={() => setIsDrawerOpen(true)}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-[#121212] text-white border-2 border-[#121212] font-black text-xs uppercase tracking-wider shadow-[3px_3px_0px_#FF5722] hover:shadow-[4px_4px_0px_#FF5722] active:translate-x-[1px] active:translate-y-[1px] transition-all"
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span>Grid</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('infographic')}
-              className={`px-2.5 py-1 rounded-lg text-xs font-black flex items-center gap-1 transition-all ${
-                activeTab === 'infographic'
-                  ? 'bg-[#FF5722] text-white shadow-[1px_1px_0px_#121212]'
-                  : 'text-gray-600 hover:text-black'
-              }`}
-            >
-              <BarChart2 className="w-3.5 h-3.5" />
-              <span>Infographic</span>
+              <Plus className="w-4 h-4 text-[#FF5722] stroke-[3]" />
+              <span>Quick Entry</span>
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* Total Net Worth Card */}
-        <div className="p-5 rounded-2xl border-2 border-[#121212] bg-[#FFD02C] shadow-[4px_4px_0px_#121212] relative overflow-hidden">
-          <div className="text-[11px] font-extrabold uppercase text-[#121212]/80 tracking-wider mb-1 flex items-center justify-between">
-            <span>Total Net Worth</span>
-            <button
-              type="button"
-              onClick={() => setIsEditBalancesOpen(true)}
-              className="px-2 py-0.5 rounded-md bg-[#121212] text-white text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1 shadow-[1px_1px_0px_#000] active:translate-x-[1px] active:translate-y-[1px]"
-            >
-              <Settings className="w-3 h-3 text-[#FFD02C]" />
-              <span>Edit Balances</span>
-            </button>
-          </div>
-          <div className="font-tabular text-3xl sm:text-4xl font-black text-[#121212] tracking-tight">
-            {formattedNetWorth}
-          </div>
-          <div className="mt-2 flex items-center gap-2 text-xs font-bold text-[#121212]/80">
-            <Wallet className="w-4 h-4" />
-            <span>Across {state.accounts.length} Wallets</span>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="max-w-xl mx-auto px-4 mt-4 space-y-6">
-        {activeTab === 'infographic' ? (
-          /* Infographic Analytics View */
-          <InfographicSummary
-            accounts={state.accounts}
-            categories={initialCategories}
-            transactions={state.transactions}
-          />
-        ) : (
-          /* Standard Dashboard View */
-          <>
-            {/* Account Balances Grid (No horizontal scrolling) */}
-            <section>
-              <div className="flex items-center justify-between mb-2.5">
-                <h2 className="text-xs font-black uppercase tracking-wider text-[#121212]">
-                  Wallets & Accounts ({state.accounts.length})
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setIsEditBalancesOpen(true)}
-                  className="text-[11px] font-extrabold text-black underline flex items-center gap-1"
-                >
-                  <Settings className="w-3 h-3 text-[#FF5722]" />
-                  <span>Set Balances</span>
-                </button>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {state.accounts.map((acc) => (
-                  <AccountCard
-                    key={acc.id}
-                    account={acc}
-                    isSelected={selectedAccountId === acc.id}
-                    onClick={() => handleAccountClick(acc.id)}
-                  />
-                ))}
-              </div>
-            </section>
-
-            {/* Recent Activity List */}
-            <section className="bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212]">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-xs font-black uppercase tracking-wider text-[#121212]">
-                  Recent Activity
-                </h2>
-                {selectedAccountId && selectedAccountObj && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedAccountId(null)}
-                    className="px-2.5 py-1 rounded-full bg-[#FFD02C] border-2 border-black text-[10px] font-black text-black flex items-center gap-1 shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px]"
-                  >
-                    <span>Filter: {selectedAccountObj.name}</span>
-                    <X className="w-3 h-3 text-black" />
-                  </button>
-                )}
-              </div>
-
-              {displayedTransactions.length === 0 ? (
-                <div className="py-8 text-center text-gray-500 font-bold text-xs">
-                  No transactions found for this selection. Tap <span className="text-black font-black">+</span> below!
+        {/* Main Content */}
+        <main>
+          {activeTab === 'infographic' ? (
+            /* Infographic Analytics View */
+            <InfographicSummary
+              accounts={state.accounts}
+              categories={initialCategories}
+              transactions={state.transactions}
+            />
+          ) : (
+            /* Responsive Grid/List Dashboard View */
+            <div className="lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start space-y-6 lg:space-y-0">
+              {/* LEFT COLUMN: Total Net Worth + Wallets Grid */}
+              <div className="lg:col-span-7 space-y-6">
+                {/* Total Net Worth Hero Card */}
+                <div className="p-6 rounded-2xl border-2 border-[#121212] bg-[#FFD02C] shadow-[5px_5px_0px_#121212] relative overflow-hidden">
+                  <div className="text-xs font-black uppercase text-[#121212]/80 tracking-wider mb-1 flex items-center justify-between">
+                    <span>Total Net Worth</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditBalancesOpen(true)}
+                      className="px-2.5 py-1 rounded-lg bg-[#121212] text-white text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1.5 border border-black shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+                    >
+                      <Settings className="w-3.5 h-3.5 text-[#FFD02C]" />
+                      <span>Edit Balances</span>
+                    </button>
+                  </div>
+                  <div className="font-tabular text-3xl sm:text-4xl lg:text-5xl font-black text-[#121212] tracking-tight">
+                    {formattedNetWorth}
+                  </div>
+                  <div className="mt-3 flex items-center gap-2 text-xs font-extrabold text-[#121212]/80">
+                    <Wallet className="w-4 h-4" />
+                    <span>Across {state.accounts.length} Wallets & Accounts</span>
+                  </div>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {Object.entries(groupedTxs).map(([groupTitle, txList]) => {
-                    if (txList.length === 0) return null;
-                    return (
-                      <div key={groupTitle} className="space-y-2">
-                        <div className="text-[11px] font-black uppercase tracking-wider text-gray-400 border-b border-gray-200 pb-1">
-                          {groupTitle}
-                        </div>
-                        <div className="space-y-2">
-                          {txList.map((tx) => {
-                            const amountNum = parseFloat(tx.amount);
-                            const formattedAmt = new Intl.NumberFormat('th-TH', {
-                              style: 'currency',
-                              currency: 'THB',
-                              minimumFractionDigits: 2,
-                            }).format(amountNum);
 
-                            return (
-                              <div
-                                key={tx.id}
-                                className="flex items-center justify-between p-2.5 rounded-xl border-2 border-[#121212] bg-[#FAF9F6] shadow-[2px_2px_0px_#121212]"
-                              >
-                                <div className="flex items-center gap-3 min-w-0">
+                {/* Wallets & Accounts Section */}
+                <section className="bg-white border-2 border-[#121212] rounded-2xl p-5 shadow-[4px_4px_0px_#121212]">
+                  <div className="flex items-center justify-between mb-3.5 border-b-2 border-[#121212] pb-2.5">
+                    <h2 className="text-xs font-black uppercase tracking-wider text-[#121212]">
+                      Wallets & Accounts ({state.accounts.length})
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditBalancesOpen(true)}
+                      className="text-[11px] font-extrabold text-black underline flex items-center gap-1 hover:text-[#FF5722]"
+                    >
+                      <Settings className="w-3.5 h-3.5 text-[#FF5722]" />
+                      <span>Set Balances</span>
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3">
+                    {state.accounts.map((acc) => (
+                      <AccountCard
+                        key={acc.id}
+                        account={acc}
+                        isSelected={selectedAccountId === acc.id}
+                        onClick={() => handleAccountClick(acc.id)}
+                      />
+                    ))}
+                  </div>
+                </section>
+              </div>
+
+              {/* RIGHT COLUMN: Recent Activity List (Sticky on PC) */}
+              <div className="lg:col-span-5">
+                <section className="bg-white border-2 border-[#121212] rounded-2xl p-5 shadow-[5px_5px_0px_#121212] lg:sticky lg:top-6">
+                  <div className="flex items-center justify-between mb-4 border-b-2 border-[#121212] pb-3">
+                    <h2 className="text-xs font-black uppercase tracking-wider text-[#121212]">
+                      Recent Activity
+                    </h2>
+                    {selectedAccountId && selectedAccountObj && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedAccountId(null)}
+                        className="px-2.5 py-1 rounded-full bg-[#FFD02C] border-2 border-black text-[10px] font-black text-black flex items-center gap-1 shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px]"
+                      >
+                        <span>Filter: {selectedAccountObj.name}</span>
+                        <X className="w-3.5 h-3.5 text-black" />
+                      </button>
+                    )}
+                  </div>
+
+                  {displayedTransactions.length === 0 ? (
+                    <div className="py-12 text-center text-gray-500 font-bold text-xs">
+                      No transactions found for this selection. Tap <span className="text-black font-black">+ Quick Entry</span> below!
+                    </div>
+                  ) : (
+                    <div className="space-y-4 max-h-[580px] overflow-y-auto pr-1 no-scrollbar">
+                      {Object.entries(groupedTxs).map(([groupTitle, txList]) => {
+                        if (txList.length === 0) return null;
+                        return (
+                          <div key={groupTitle} className="space-y-2">
+                            <div className="text-[11px] font-black uppercase tracking-wider text-gray-400 border-b border-gray-200 pb-1">
+                              {groupTitle}
+                            </div>
+                            <div className="space-y-2">
+                              {txList.map((tx) => {
+                                const amountNum = parseFloat(tx.amount);
+                                const formattedAmt = new Intl.NumberFormat('th-TH', {
+                                  style: 'currency',
+                                  currency: 'THB',
+                                  minimumFractionDigits: 2,
+                                }).format(amountNum);
+
+                                return (
                                   <div
-                                    className={`w-9 h-9 rounded-lg border border-black flex items-center justify-center flex-shrink-0 text-white font-bold ${
-                                      tx.type === 'EXPENSE'
-                                        ? 'bg-[#FF5722]'
-                                        : tx.type === 'INCOME'
-                                        ? 'bg-[#10B981]'
-                                        : 'bg-[#3B82F6]'
-                                    }`}
+                                    key={tx.id}
+                                    className="flex items-center justify-between p-3 rounded-xl border-2 border-[#121212] bg-[#FAF9F6] shadow-[2px_2px_0px_#121212] hover:shadow-[3px_3px_0px_#121212] transition-all"
                                   >
-                                    {tx.type === 'TRANSFER' ? (
-                                      <ArrowLeftRight className="w-5 h-5" />
-                                    ) : tx.category?.icon ? (
-                                      <CategoryIcon name={tx.category.icon} className="w-5 h-5" />
-                                    ) : tx.type === 'EXPENSE' ? (
-                                      <ArrowUpRight className="w-5 h-5" />
-                                    ) : (
-                                      <ArrowDownLeft className="w-5 h-5" />
-                                    )}
-                                  </div>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div
+                                        className={`w-9 h-9 rounded-lg border-2 border-black flex items-center justify-center flex-shrink-0 text-white font-bold shadow-[1px_1px_0px_#121212] ${
+                                          tx.type === 'EXPENSE'
+                                            ? 'bg-[#FF5722]'
+                                            : tx.type === 'INCOME'
+                                            ? 'bg-[#10B981]'
+                                            : 'bg-[#3B82F6]'
+                                        }`}
+                                      >
+                                        {tx.type === 'TRANSFER' ? (
+                                          <ArrowLeftRight className="w-5 h-5" />
+                                        ) : tx.category?.icon ? (
+                                          <CategoryIcon name={tx.category.icon} className="w-5 h-5" />
+                                        ) : tx.type === 'EXPENSE' ? (
+                                          <ArrowUpRight className="w-5 h-5" />
+                                        ) : (
+                                          <ArrowDownLeft className="w-5 h-5" />
+                                        )}
+                                      </div>
 
-                                  <div className="min-w-0">
-                                    <div className="font-extrabold text-xs text-[#121212] truncate">
-                                      {tx.note ||
-                                        (tx.type === 'TRANSFER'
-                                          ? 'Account Transfer'
-                                          : tx.category?.name || tx.type)}
+                                      <div className="min-w-0">
+                                        <div className="font-extrabold text-xs text-[#121212] truncate">
+                                          {tx.note ||
+                                            (tx.type === 'TRANSFER'
+                                              ? 'Account Transfer'
+                                              : tx.category?.name || tx.type)}
+                                        </div>
+                                        <div className="text-[10px] text-gray-500 font-bold truncate flex items-center gap-1">
+                                          {tx.type === 'TRANSFER' ? (
+                                            <span>
+                                              {tx.fromAccount?.name || 'Wallet'} → {tx.toAccount?.name || 'Wallet'}
+                                            </span>
+                                          ) : (
+                                            <span>
+                                              {tx.fromAccount?.name || tx.toAccount?.name || 'Wallet'}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
                                     </div>
-                                    <div className="text-[10px] text-gray-500 font-bold truncate flex items-center gap-1">
-                                      {tx.type === 'TRANSFER' ? (
-                                        <span>
-                                          {tx.fromAccount?.name || 'Wallet'} → {tx.toAccount?.name || 'Wallet'}
-                                        </span>
-                                      ) : (
-                                        <span>
-                                          {tx.fromAccount?.name || tx.toAccount?.name || 'Wallet'}
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
 
-                                <div className="text-right flex-shrink-0">
-                                  <div
-                                    className={`font-tabular font-black text-xs ${
-                                      tx.type === 'EXPENSE'
-                                        ? 'text-rose-600'
-                                        : tx.type === 'INCOME'
-                                        ? 'text-emerald-600'
-                                        : 'text-blue-600'
-                                    }`}
-                                  >
-                                    {tx.type === 'EXPENSE' ? '-' : tx.type === 'INCOME' ? '+' : ''}
-                                    {formattedAmt}
+                                    <div className="text-right flex-shrink-0 pl-2">
+                                      <div
+                                        className={`font-tabular font-black text-xs sm:text-sm ${
+                                          tx.type === 'EXPENSE'
+                                            ? 'text-rose-600'
+                                            : tx.type === 'INCOME'
+                                            ? 'text-emerald-600'
+                                            : 'text-blue-600'
+                                        }`}
+                                      >
+                                        {tx.type === 'EXPENSE' ? '-' : tx.type === 'INCOME' ? '+' : ''}
+                                        {formattedAmt}
+                                      </div>
+                                      <div className="text-[9px] font-extrabold text-gray-400 uppercase">
+                                        {tx.type}
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div className="text-[9px] font-extrabold text-gray-400 uppercase">
-                                    {tx.type}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </section>
-          </>
-        )}
-      </main>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
 
       {/* Floating Action Button (FAB) Centered at Thumb Zone */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
         <button
           type="button"
           onClick={() => setIsDrawerOpen(true)}
-          className="bg-[#121212] text-white px-6 py-3.5 rounded-full border-2 border-[#121212] font-black text-sm uppercase tracking-wider flex items-center gap-2.5 shadow-[4px_4px_0px_#FF5722] hover:shadow-[5px_5px_0px_#FF5722] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#FF5722] transition-all"
+          className="bg-[#121212] text-white px-6 py-3.5 rounded-full border-2 border-[#121212] font-black text-sm uppercase tracking-wider flex items-center gap-2.5 shadow-[4px_4px_0px_#FF5722] hover:shadow-[6px_6px_0px_#FF5722] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#FF5722] transition-all"
         >
           <Plus className="w-5 h-5 text-[#FF5722] stroke-[3]" />
           <span>Quick Entry</span>
