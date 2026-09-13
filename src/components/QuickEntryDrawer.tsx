@@ -5,7 +5,7 @@ import { Account, Category, TransactionType, TransactionInput } from '@/types';
 import { Numpad } from './Numpad';
 import { AmountDisplay } from './AmountDisplay';
 import { CategoryIcon } from './CategoryIcon';
-import { X, ArrowRight, AlertCircle, Check } from 'lucide-react';
+import { X, AlertCircle, Check } from 'lucide-react';
 
 interface QuickEntryDrawerProps {
   isOpen: boolean;
@@ -31,7 +31,6 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
   const [activeSlot, setActiveSlot] = useState<'from' | 'to'>('from');
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  // Set default initial account selections when accounts load
   useEffect(() => {
     if (accounts.length > 0) {
       if (!fromAccountId) setFromAccountId(accounts[0].id);
@@ -39,7 +38,6 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
     }
   }, [accounts, fromAccountId, toAccountId]);
 
-  // Set default category when type changes
   useEffect(() => {
     if (type !== 'TRANSFER') {
       const filtered = categories.filter((c) => c.type === type);
@@ -49,7 +47,6 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
     }
   }, [type, categories, categoryId]);
 
-  // Validate inputs
   useEffect(() => {
     const numAmount = parseFloat(amountStr);
     if (!amountStr || numAmount <= 0) {
@@ -98,7 +95,6 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
       transactionDate: new Date().toISOString().split('T')[0],
     });
 
-    // Reset drawer form state
     setAmountStr('0');
     setNote('');
     onClose();
@@ -109,34 +105,33 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
   const availableCategories = categories.filter((c) => c.type === type);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4">
-      {/* Backdrop click to close */}
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 backdrop-blur-xs p-0 sm:p-4 transition-all">
       <div className="absolute inset-0" onClick={onClose} />
 
-      {/* Main Drawer Sheet */}
-      <div className="relative w-full max-w-lg bg-[#FAF9F6] border-t-4 sm:border-4 border-black sm:rounded-2xl shadow-[6px_6px_0px_#000] p-4 sm:p-6 max-h-[92vh] overflow-y-auto z-10 flex flex-col no-scrollbar">
-        {/* Header Bar */}
+      <div className="relative w-full max-w-lg bg-white rounded-t-3xl sm:rounded-3xl border border-slate-200 shadow-2xl p-5 max-h-[92vh] overflow-y-auto z-10 flex flex-col no-scrollbar">
+        {/* Top Handle Bar */}
+        <div className="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-4" />
+
+        {/* Header */}
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xl font-black uppercase tracking-tight text-black flex items-center gap-2">
-            Quick Entry
-          </h2>
+          <h2 className="text-lg font-bold text-slate-900 tracking-tight">Quick Entry</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full border-2 border-black bg-white flex items-center justify-center font-bold shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+            className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-colors"
           >
-            <X className="w-5 h-5 text-black" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Segmented Type Switch */}
-        <div className="grid grid-cols-3 gap-2 p-1.5 bg-white border-2 border-black rounded-xl shadow-[3px_3px_0px_#000] mb-3">
+        <div className="grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-2xl mb-3">
           <button
             type="button"
             onClick={() => setType('EXPENSE')}
-            className={`py-2 px-1 rounded-lg font-black text-xs uppercase tracking-wider transition-all border border-black ${
+            className={`py-2 px-1 rounded-xl font-bold text-xs transition-all ${
               type === 'EXPENSE'
-                ? 'bg-[#FF5722] text-white shadow-[2px_2px_0px_#000]'
-                : 'bg-slate-100 text-black hover:bg-slate-200'
+                ? 'bg-rose-500 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Expense
@@ -144,10 +139,10 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
           <button
             type="button"
             onClick={() => setType('INCOME')}
-            className={`py-2 px-1 rounded-lg font-black text-xs uppercase tracking-wider transition-all border border-black ${
+            className={`py-2 px-1 rounded-xl font-bold text-xs transition-all ${
               type === 'INCOME'
-                ? 'bg-[#10B981] text-white shadow-[2px_2px_0px_#000]'
-                : 'bg-slate-100 text-black hover:bg-slate-200'
+                ? 'bg-emerald-500 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Income
@@ -158,10 +153,10 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
               setType('TRANSFER');
               setActiveSlot('from');
             }}
-            className={`py-2 px-1 rounded-lg font-black text-xs uppercase tracking-wider transition-all border border-black ${
+            className={`py-2 px-1 rounded-xl font-bold text-xs transition-all ${
               type === 'TRANSFER'
-                ? 'bg-[#3B82F6] text-white shadow-[2px_2px_0px_#000]'
-                : 'bg-slate-100 text-black hover:bg-slate-200'
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
             Transfer
@@ -174,50 +169,47 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
         {/* TRANSFER Directional Account Selector */}
         {type === 'TRANSFER' ? (
           <div className="mb-3">
-            <label className="text-xs font-black uppercase text-gray-700 tracking-wider block mb-1.5">
+            <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
               Directional Transfer
             </label>
             <div className="grid grid-cols-2 gap-2 mb-2">
-              {/* Transfer From Box */}
               <div
                 onClick={() => setActiveSlot('from')}
-                className={`p-2.5 rounded-xl border-2 border-black cursor-pointer transition-all ${
+                className={`p-3 rounded-2xl border transition-all cursor-pointer ${
                   activeSlot === 'from'
-                    ? 'bg-blue-100 shadow-[3px_3px_0px_#000] ring-2 ring-black'
-                    : 'bg-white shadow-[2px_2px_0px_#000]'
+                    ? 'bg-indigo-50/70 border-indigo-500 ring-2 ring-indigo-500/20'
+                    : 'bg-slate-50 border-slate-200'
                 }`}
               >
-                <div className="text-[10px] font-black uppercase text-gray-500">Transfer From</div>
-                <div className="font-bold text-xs truncate text-black flex items-center gap-1 mt-0.5">
+                <div className="text-[10px] font-semibold text-slate-400 uppercase">Transfer From</div>
+                <div className="font-bold text-xs text-slate-900 truncate flex items-center gap-1.5 mt-0.5">
                   <div
-                    className="w-2.5 h-2.5 rounded-full border border-black"
-                    style={{ backgroundColor: selectedFromAccount?.color || '#000' }}
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: selectedFromAccount?.color || '#64748B' }}
                   />
                   {selectedFromAccount?.name || 'Select Account'}
                 </div>
               </div>
 
-              {/* Transfer To Box */}
               <div
                 onClick={() => setActiveSlot('to')}
-                className={`p-2.5 rounded-xl border-2 border-black cursor-pointer transition-all ${
+                className={`p-3 rounded-2xl border transition-all cursor-pointer ${
                   activeSlot === 'to'
-                    ? 'bg-blue-100 shadow-[3px_3px_0px_#000] ring-2 ring-black'
-                    : 'bg-white shadow-[2px_2px_0px_#000]'
+                    ? 'bg-indigo-50/70 border-indigo-500 ring-2 ring-indigo-500/20'
+                    : 'bg-slate-50 border-slate-200'
                 }`}
               >
-                <div className="text-[10px] font-black uppercase text-gray-500">Transfer To</div>
-                <div className="font-bold text-xs truncate text-black flex items-center gap-1 mt-0.5">
+                <div className="text-[10px] font-semibold text-slate-400 uppercase">Transfer To</div>
+                <div className="font-bold text-xs text-slate-900 truncate flex items-center gap-1.5 mt-0.5">
                   <div
-                    className="w-2.5 h-2.5 rounded-full border border-black"
-                    style={{ backgroundColor: selectedToAccount?.color || '#000' }}
+                    className="w-2.5 h-2.5 rounded-full"
+                    style={{ backgroundColor: selectedToAccount?.color || '#64748B' }}
                   />
                   {selectedToAccount?.name || 'Select Account'}
                 </div>
               </div>
             </div>
 
-            {/* Account Chips Selection for Active Slot */}
             <div className="flex flex-wrap gap-1.5 mt-1">
               {accounts.map((acc) => {
                 const isSelected =
@@ -227,22 +219,16 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
                     key={acc.id}
                     type="button"
                     onClick={() => {
-                      if (activeSlot === 'from') {
-                        setFromAccountId(acc.id);
-                      } else {
-                        setToAccountId(acc.id);
-                      }
+                      if (activeSlot === 'from') setFromAccountId(acc.id);
+                      else setToAccountId(acc.id);
                     }}
-                    className={`px-2.5 py-1 rounded-lg border-2 border-black text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition-all flex items-center gap-1.5 ${
                       isSelected
-                        ? 'bg-black text-white shadow-[2px_2px_0px_#000]'
-                        : 'bg-white text-black hover:bg-slate-100 shadow-[1px_1px_0px_#000]'
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                        : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                     }`}
                   >
-                    <div
-                      className="w-2 h-2 rounded-full border border-black"
-                      style={{ backgroundColor: acc.color }}
-                    />
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: acc.color }} />
                     {acc.name}
                   </button>
                 );
@@ -250,9 +236,8 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
             </div>
           </div>
         ) : (
-          /* EXPENSE / INCOME Single Account Selector */
           <div className="mb-3">
-            <label className="text-xs font-black uppercase text-gray-700 tracking-wider block mb-1.5">
+            <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
               {type === 'EXPENSE' ? 'Pay From Wallet' : 'Deposit To Wallet'}
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -266,16 +251,13 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
                       if (type === 'EXPENSE') setFromAccountId(acc.id);
                       else setToAccountId(acc.id);
                     }}
-                    className={`px-2.5 py-1 rounded-lg border-2 border-black text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition-all flex items-center gap-1.5 ${
                       isSelected
-                        ? 'bg-black text-white shadow-[2px_2px_0px_#000]'
-                        : 'bg-white text-black hover:bg-slate-100 shadow-[1px_1px_0px_#000]'
+                        ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                        : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                     }`}
                   >
-                    <div
-                      className="w-2 h-2 rounded-full border border-black"
-                      style={{ backgroundColor: acc.color }}
-                    />
+                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: acc.color }} />
                     {acc.name}
                   </button>
                 );
@@ -284,10 +266,10 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
           </div>
         )}
 
-        {/* Category Selector (Hidden for TRANSFER) */}
+        {/* Category Selector */}
         {type !== 'TRANSFER' && (
           <div className="mb-3">
-            <label className="text-xs font-black uppercase text-gray-700 tracking-wider block mb-1.5">
+            <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
               Category
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -298,10 +280,10 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
                     key={cat.id}
                     type="button"
                     onClick={() => setCategoryId(cat.id)}
-                    className={`px-2.5 py-1 rounded-lg border-2 border-black text-xs font-bold transition-all flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition-all flex items-center gap-1.5 ${
                       isSelected
-                        ? 'bg-amber-300 text-black shadow-[2px_2px_0px_#000]'
-                        : 'bg-white text-black hover:bg-slate-100 shadow-[1px_1px_0px_#000]'
+                        ? 'bg-amber-100 border-amber-300 text-amber-900 font-bold shadow-xs'
+                        : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
                     <CategoryIcon name={cat.icon} className="w-3.5 h-3.5" />
@@ -313,40 +295,40 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
           </div>
         )}
 
-        {/* Optional Note Field */}
+        {/* Note Input */}
         <div className="mb-2">
           <input
             type="text"
             placeholder="Add note (optional)..."
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="w-full px-3 py-2 bg-white border-2 border-black rounded-xl text-xs font-bold text-black placeholder:text-gray-400 shadow-[2px_2px_0px_#000] focus:outline-none focus:ring-2 focus:ring-black"
+            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400"
           />
         </div>
 
         {/* Numpad */}
         <Numpad value={amountStr} onChange={setAmountStr} />
 
-        {/* Inline Validation Banner */}
+        {/* Validation error message */}
         {validationError && (
-          <div className="flex items-center gap-2 p-2 bg-rose-100 border-2 border-black rounded-xl text-rose-800 text-xs font-bold mb-2">
+          <div className="flex items-center gap-2 p-2.5 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-xs font-medium mb-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{validationError}</span>
           </div>
         )}
 
-        {/* Save Transaction Action Button */}
+        {/* Save Action Button */}
         <button
           type="button"
           onClick={handleSubmit}
           disabled={!!validationError}
-          className={`w-full py-3 rounded-xl border-2 border-black font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 transition-all ${
+          className={`w-full py-3.5 rounded-2xl font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-all active:scale-[0.98] ${
             validationError
-              ? 'bg-gray-300 text-gray-600 cursor-not-allowed opacity-60'
-              : 'bg-black text-white shadow-[4px_4px_0px_#FF5722] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#FF5722]'
+              ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              : 'bg-slate-900 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800'
           }`}
         >
-          <Check className="w-5 h-5" />
+          <Check className="w-4 h-4" />
           Save Transaction
         </button>
       </div>

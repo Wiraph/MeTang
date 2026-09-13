@@ -10,24 +10,24 @@ export const AmountDisplay: React.FC<AmountDisplayProps> = ({ value, type }) => 
   const getTypeColor = () => {
     switch (type) {
       case 'EXPENSE':
-        return 'text-[#FF5722]';
+        return 'text-rose-600';
       case 'INCOME':
-        return 'text-[#10B981]';
+        return 'text-emerald-600';
       case 'TRANSFER':
-        return 'text-[#3B82F6]';
+        return 'text-indigo-600';
     }
   };
 
   const displayValue = value ? value : '0';
 
   return (
-    <div className="w-full bg-white border-2 border-black shadow-[3px_3px_0px_#000] rounded-xl p-4 text-center my-3 transition-colors">
-      <span className="text-xs font-black uppercase text-gray-500 tracking-wider block mb-1">
+    <div className="w-full bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-center my-3 transition-colors">
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1">
         Entered Amount
       </span>
       <div className="flex items-center justify-center gap-1">
-        <span className={`text-2xl font-black ${getTypeColor()}`}>฿</span>
-        <span className={`text-4xl font-black tracking-tight ${getTypeColor()} truncate`}>
+        <span className={`text-2xl font-bold ${getTypeColor()}`}>฿</span>
+        <span className={`text-4xl font-extrabold tracking-tight ${getTypeColor()} truncate`}>
           {displayValue}
         </span>
       </div>
