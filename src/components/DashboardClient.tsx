@@ -137,7 +137,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
               M
             </div>
             <div>
-              <h1 className="text-xl font-black uppercase tracking-tight">MeTang 2.0</h1>
+              <h1 className="text-xl font-black uppercase tracking-tight">MeTang</h1>
               <p className="text-[11px] font-bold text-gray-500">Zero-Friction Finance</p>
             </div>
           </div>

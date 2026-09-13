@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "MeTang 2.0 | Zero-Friction Personal Finance",
+  title: "MeTang | Zero-Friction Personal Finance",
   description: "Next-gen zero-friction expense, income, and cross-account transfer manager with instant optimistic sync.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "MeTang 2.0",
+    title: "MeTang",
   },
 };
 
