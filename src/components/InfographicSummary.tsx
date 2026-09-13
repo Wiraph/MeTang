@@ -32,6 +32,7 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
   const [isPickerOpen, setIsPickerOpen] = useState<boolean>(false);
   const [chartType, setChartType] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
   const [topTxType, setTopTxType] = useState<'EXPENSE' | 'INCOME'>('EXPENSE');
+  const [hoveredMonthIdx, setHoveredMonthIdx] = useState<number | null>(null);
 
   // View state for date/month navigation in picker
   const [viewYear, setViewYear] = useState<number>(new Date().getFullYear());
@@ -170,6 +171,180 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
     const sorted = [...targetTxs].sort((a, b) => parseFloat(b.amount) - parseFloat(a.amount));
     return sorted.slice(0, 5);
   }, [filteredTransactions, topTxType]);
+
+  // Yearly 12-month breakdown for Income vs Expense bar chart
+  const yearlyMonthlyBreakdown = useMemo(() => {
+    const selectedYearStr = selectedDate.getFullYear().toString();
+    const monthsData = Array.from({ length: 12 }, (_, i) => ({
+      monthIndex: i,
+      monthNameShort: THAI_MONTHS_SHORT[i],
+      income: 0,
+      expense: 0,
+    }));
+
+    transactions.forEach((tx) => {
+      const txDateStr = normalizeTxDate(tx.transactionDate);
+      if (!txDateStr || !txDateStr.startsWith(selectedYearStr)) return;
+
+      const monthIdx = parseInt(txDateStr.slice(5, 7), 10) - 1;
+      if (monthIdx >= 0 && monthIdx < 12) {
+        const amt = parseFloat(tx.amount || '0');
+        if (tx.type === 'INCOME') monthsData[monthIdx].income += amt;
+        if (tx.type === 'EXPENSE') monthsData[monthIdx].expense += amt;
+      }
+    });
+
+    let maxVal = 0;
+    monthsData.forEach((m) => {
+      if (m.income > maxVal) maxVal = m.income;
+      if (m.expense > maxVal) maxVal = m.expense;
+    });
+
+    if (maxVal === 0) maxVal = 10000;
+
+    return { months: monthsData, maxVal };
+  }, [transactions, selectedDate]);
+
+  // Render Yearly Income vs Expense Bar Chart
+  const renderYearlyBarChart = () => {
+    const { months, maxVal } = yearlyMonthlyBreakdown;
+
+    // Y axis ticks (4 intervals)
+    const tickStep = maxVal / 4;
+    const ticks = [maxVal, tickStep * 3, tickStep * 2, tickStep * 1, 0];
+
+    const formatTick = (val: number) => {
+      if (val === 0) return '0k';
+      if (val >= 1000) {
+        const kVal = val / 1000;
+        return `${Number(kVal.toFixed(1))}k`;
+      }
+      return val.toString();
+    };
+
+    const activeMonth = hoveredMonthIdx !== null ? months[hoveredMonthIdx] : null;
+
+    return (
+      <div className="bg-white border-2 border-[#121212] rounded-2xl p-4 sm:p-5 shadow-[4px_4px_0px_#121212] space-y-4">
+        {/* Card Header */}
+        <div className="flex items-center justify-between border-b-2 border-[#121212] pb-3">
+          <div className="flex items-center gap-2">
+            <CalendarIcon className="w-5 h-5 text-[#121212]" />
+            <h3 className="text-xs font-black uppercase tracking-wider text-[#121212]">
+              INCOME VS EXPENSE
+            </h3>
+          </div>
+          <span className="text-xs font-black text-gray-500 font-tabular">
+            ปี {selectedDate.getFullYear() + 543}
+          </span>
+        </div>
+
+        {/* Chart Canvas Area */}
+        <div className="relative pt-6 pb-2">
+          {/* Tooltip Overlay */}
+          {activeMonth && (activeMonth.income > 0 || activeMonth.expense > 0) && (
+            <div
+              className="absolute z-20 bg-white border-2 border-[#121212] rounded-xl p-3 shadow-[4px_4px_0px_#121212] pointer-events-none transition-all duration-150 transform -translate-x-1/2 -translate-y-full"
+              style={{
+                left: `calc(44px + ${(activeMonth.monthIndex + 0.5) / 12} * (100% - 44px))`,
+                top: '25%',
+              }}
+            >
+              <div className="font-black text-xs text-[#121212] mb-1">
+                {activeMonth.monthNameShort}
+              </div>
+              <div className="text-xs font-extrabold text-[#FF5722] font-tabular">
+                Expense : ฿{activeMonth.expense.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+              </div>
+              <div className="text-xs font-extrabold text-[#121212] font-tabular">
+                Income : ฿{activeMonth.income.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+              </div>
+            </div>
+          )}
+
+          <div className="flex">
+            {/* Y Axis Labels */}
+            <div className="flex flex-col justify-between pr-2 text-[10px] sm:text-xs font-black text-gray-500 text-right h-56 select-none w-11 flex-shrink-0">
+              {ticks.map((t, idx) => (
+                <span key={idx} className="leading-none">
+                  {formatTick(t)}
+                </span>
+              ))}
+            </div>
+
+            {/* Chart Grid */}
+            <div className="relative flex-1 h-56 border-l-2 border-b-2 border-[#121212] bg-[#FAF9F6] overflow-hidden">
+              {/* Horizontal Grid Lines */}
+              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                {ticks.map((_, idx) => (
+                  <div key={idx} className="border-b border-gray-200 w-full h-0" />
+                ))}
+              </div>
+
+              {/* 12 Month Columns */}
+              <div className="absolute inset-0 grid grid-cols-12 h-full">
+                {months.map((m) => {
+                  const isHovered = hoveredMonthIdx === m.monthIndex;
+                  const incomeHeight = maxVal > 0 ? (m.income / maxVal) * 100 : 0;
+                  const expenseHeight = maxVal > 0 ? (m.expense / maxVal) * 100 : 0;
+
+                  return (
+                    <div
+                      key={m.monthIndex}
+                      onMouseEnter={() => setHoveredMonthIdx(m.monthIndex)}
+                      onMouseLeave={() => setHoveredMonthIdx(null)}
+                      onClick={() => setHoveredMonthIdx(m.monthIndex)}
+                      className={`relative flex items-end justify-center gap-0.5 sm:gap-1 px-0.5 h-full cursor-pointer transition-colors border-r border-gray-200 last:border-0 ${
+                        isHovered ? 'bg-slate-300/60' : ''
+                      }`}
+                    >
+                      {/* Income Bar (Black) */}
+                      <div
+                        className="w-1.5 sm:w-3.5 md:w-4.5 bg-[#121212] rounded-t-xs transition-all duration-300 hover:opacity-90"
+                        style={{ height: `${Math.max(incomeHeight, m.income > 0 ? 3 : 0)}%` }}
+                      />
+
+                      {/* Expense Bar (Orange) */}
+                      <div
+                        className="w-1.5 sm:w-3.5 md:w-4.5 bg-[#FF5722] rounded-t-xs transition-all duration-300 hover:opacity-90"
+                        style={{ height: `${Math.max(expenseHeight, m.expense > 0 ? 3 : 0)}%` }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* X Axis Month Labels */}
+          <div className="flex pl-11 pt-2 text-[10px] sm:text-xs font-black text-gray-600">
+            <div className="grid grid-cols-12 w-full text-center">
+              {months.map((m) => (
+                <span
+                  key={m.monthIndex}
+                  className={`truncate ${hoveredMonthIdx === m.monthIndex ? 'text-[#FF5722] font-black' : ''}`}
+                >
+                  {m.monthNameShort}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center justify-center gap-6 pt-2 border-t-2 border-[#121212] text-xs font-extrabold text-[#121212]">
+          <div className="flex items-center gap-2">
+            <div className="w-3.5 h-3.5 bg-[#FF5722] rounded-xs border border-[#121212]" />
+            <span>Expense</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3.5 h-3.5 bg-[#121212] rounded-xs border border-[#121212]" />
+            <span>Income</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Dynamic Header Title & Active Showing Label
   const getFilterLabels = () => {
@@ -560,7 +735,10 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
         </div>
       </div>
 
-      {/* 4. Infographic Two-Column / Grid Layout */}
+      {/* 4. Yearly Bar Chart (INCOME VS EXPENSE) */}
+      {period === 'YEARLY' && renderYearlyBarChart()}
+
+      {/* 5. Infographic Two-Column / Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
         {/* Left Card: CATEGORY SHARE (With Expense / Income Switcher) */}
         <div className="md:col-span-6 bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212] flex flex-col justify-between h-full">
