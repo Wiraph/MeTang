@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useOptimistic, useTransition } from 'react';
+import React, { useState, useMemo, useOptimistic, useTransition } from 'react';
 import { Account, Category, ExtendedTransaction, TransactionInput } from '@/types';
 import { createTransactionAction } from '@/actions/transactions';
 import { AccountCard } from './AccountCard';
 import { QuickEntryDrawer } from './QuickEntryDrawer';
 import { CategoryIcon } from './CategoryIcon';
 import { InfographicSummary } from './InfographicSummary';
-import { Plus, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Wallet, LayoutGrid, BarChart2 } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Wallet, LayoutGrid, BarChart2, X } from 'lucide-react';
 
 interface DashboardClientProps {
   initialAccounts: Account[];
@@ -27,6 +27,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'infographic'>('dashboard');
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
 
   // Optimistic state sync for zero perceived latency (0ms UI update)
@@ -89,6 +90,14 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
     minimumFractionDigits: 2,
   }).format(netWorth);
 
+  // Filter transactions by selected account
+  const displayedTransactions = useMemo(() => {
+    if (!selectedAccountId) return state.transactions;
+    return state.transactions.filter(
+      (tx) => tx.fromAccountId === selectedAccountId || tx.toAccountId === selectedAccountId
+    );
+  }, [state.transactions, selectedAccountId]);
+
   // Group transactions by date
   const groupTransactions = (txs: ExtendedTransaction[]) => {
     const today = new Date().toISOString().split('T')[0];
@@ -116,7 +125,16 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
     return groups;
   };
 
-  const groupedTxs = groupTransactions(state.transactions);
+  const groupedTxs = groupTransactions(displayedTransactions);
+
+  const handleAccountClick = (accountId: string) => {
+    if (selectedAccountId === accountId) {
+      setSelectedAccountId(null);
+    } else {
+      setSelectedAccountId(accountId);
+      setIsDrawerOpen(true);
+    }
+  };
 
   const handleCreateTransaction = (input: TransactionInput) => {
     startTransition(async () => {
@@ -128,6 +146,8 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
       }
     });
   };
+
+  const selectedAccountObj = state.accounts.find((a) => a.id === selectedAccountId);
 
   return (
     <div className="min-h-screen bg-[#F4F3EF] text-[#121212] pb-28 font-sans">
@@ -206,24 +226,41 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
                 <h2 className="text-xs font-black uppercase tracking-wider text-[#121212]">
                   Wallets & Accounts ({state.accounts.length})
                 </h2>
-                <span className="text-[11px] font-extrabold text-gray-500">All View</span>
+                <span className="text-[11px] font-extrabold text-gray-500">Tap to Select</span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {state.accounts.map((acc) => (
-                  <AccountCard key={acc.id} account={acc} />
+                  <AccountCard
+                    key={acc.id}
+                    account={acc}
+                    isSelected={selectedAccountId === acc.id}
+                    onClick={() => handleAccountClick(acc.id)}
+                  />
                 ))}
               </div>
             </section>
 
             {/* Recent Activity List */}
             <section className="bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212]">
-              <h2 className="text-xs font-black uppercase tracking-wider text-[#121212] mb-3">
-                Recent Activity
-              </h2>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-xs font-black uppercase tracking-wider text-[#121212]">
+                  Recent Activity
+                </h2>
+                {selectedAccountId && selectedAccountObj && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAccountId(null)}
+                    className="px-2.5 py-1 rounded-full bg-[#FFD02C] border-2 border-black text-[10px] font-black text-black flex items-center gap-1 shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px]"
+                  >
+                    <span>Filter: {selectedAccountObj.name}</span>
+                    <X className="w-3 h-3 text-black" />
+                  </button>
+                )}
+              </div>
 
-              {state.transactions.length === 0 ? (
+              {displayedTransactions.length === 0 ? (
                 <div className="py-8 text-center text-gray-500 font-bold text-xs">
-                  No transactions recorded yet. Tap <span className="text-black font-black">+</span> below!
+                  No transactions found for this selection. Tap <span className="text-black font-black">+</span> below!
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -340,6 +377,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         accounts={state.accounts}
         categories={initialCategories}
         onSubmit={handleCreateTransaction}
+        defaultAccountId={selectedAccountId}
       />
     </div>
   );
