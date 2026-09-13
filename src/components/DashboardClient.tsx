@@ -6,7 +6,8 @@ import { createTransactionAction } from '@/actions/transactions';
 import { AccountCard } from './AccountCard';
 import { QuickEntryDrawer } from './QuickEntryDrawer';
 import { CategoryIcon } from './CategoryIcon';
-import { Plus, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Wallet } from 'lucide-react';
+import { InfographicSummary } from './InfographicSummary';
+import { Plus, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Wallet, LayoutGrid, BarChart2 } from 'lucide-react';
 
 interface DashboardClientProps {
   initialAccounts: Account[];
@@ -25,6 +26,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
   initialTransactions,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'infographic'>('dashboard');
   const [, startTransition] = useTransition();
 
   // Optimistic state sync for zero perceived latency (0ms UI update)
@@ -141,9 +143,34 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
               <p className="text-[11px] font-bold text-gray-500">Zero-Friction Finance</p>
             </div>
           </div>
-          <span className="px-2.5 py-1 rounded-full border-2 border-black bg-amber-200 text-black text-[11px] font-black uppercase tracking-wider shadow-[2px_2px_0px_#000]">
-            PWA Ready
-          </span>
+
+          {/* View Switcher: Dashboard vs Infographic */}
+          <div className="flex items-center p-1 bg-white border-2 border-black rounded-xl shadow-[2px_2px_0px_#000]">
+            <button
+              type="button"
+              onClick={() => setActiveTab('dashboard')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-black flex items-center gap-1 transition-all ${
+                activeTab === 'dashboard'
+                  ? 'bg-black text-white shadow-[1px_1px_0px_#000]'
+                  : 'text-gray-600 hover:text-black'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Grid</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('infographic')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-black flex items-center gap-1 transition-all ${
+                activeTab === 'infographic'
+                  ? 'bg-[#FF5722] text-white shadow-[1px_1px_0px_#000]'
+                  : 'text-gray-600 hover:text-black'
+              }`}
+            >
+              <BarChart2 className="w-3.5 h-3.5" />
+              <span>Infographic</span>
+            </button>
+          </div>
         </div>
 
         {/* Total Net Worth Card */}
@@ -163,123 +190,135 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
 
       {/* Main Content Area */}
       <main className="max-w-xl mx-auto px-4 mt-4 space-y-6">
-        {/* Account Balances Grid (No horizontal scrolling) */}
-        <section>
-          <div className="flex items-center justify-between mb-2.5">
-            <h2 className="text-sm font-black uppercase tracking-wider text-black">
-              Wallets & Accounts ({state.accounts.length})
-            </h2>
-            <span className="text-[11px] font-bold text-gray-500">All View</span>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {state.accounts.map((acc) => (
-              <AccountCard key={acc.id} account={acc} />
-            ))}
-          </div>
-        </section>
+        {activeTab === 'infographic' ? (
+          /* Infographic Analytics View */
+          <InfographicSummary
+            accounts={state.accounts}
+            categories={initialCategories}
+            transactions={state.transactions}
+          />
+        ) : (
+          /* Standard Dashboard View */
+          <>
+            {/* Account Balances Grid (No horizontal scrolling) */}
+            <section>
+              <div className="flex items-center justify-between mb-2.5">
+                <h2 className="text-sm font-black uppercase tracking-wider text-black">
+                  Wallets & Accounts ({state.accounts.length})
+                </h2>
+                <span className="text-[11px] font-bold text-gray-500">All View</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {state.accounts.map((acc) => (
+                  <AccountCard key={acc.id} account={acc} />
+                ))}
+              </div>
+            </section>
 
-        {/* Recent Activity List */}
-        <section className="bg-white border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0px_#000]">
-          <h2 className="text-sm font-black uppercase tracking-wider text-black mb-3">
-            Recent Activity
-          </h2>
+            {/* Recent Activity List */}
+            <section className="bg-white border-2 border-black rounded-2xl p-4 shadow-[4px_4px_0px_#000]">
+              <h2 className="text-sm font-black uppercase tracking-wider text-black mb-3">
+                Recent Activity
+              </h2>
 
-          {state.transactions.length === 0 ? (
-            <div className="py-8 text-center text-gray-500 font-bold text-xs">
-              No transactions recorded yet. Tap <span className="text-black">+</span> below!
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {Object.entries(groupedTxs).map(([groupTitle, txList]) => {
-                if (txList.length === 0) return null;
-                return (
-                  <div key={groupTitle} className="space-y-2">
-                    <div className="text-[11px] font-black uppercase tracking-wider text-gray-400 border-b border-gray-200 pb-1">
-                      {groupTitle}
-                    </div>
-                    <div className="space-y-2">
-                      {txList.map((tx) => {
-                        const amountNum = parseFloat(tx.amount);
-                        const formattedAmt = new Intl.NumberFormat('th-TH', {
-                          style: 'currency',
-                          currency: 'THB',
-                          minimumFractionDigits: 2,
-                        }).format(amountNum);
+              {state.transactions.length === 0 ? (
+                <div className="py-8 text-center text-gray-500 font-bold text-xs">
+                  No transactions recorded yet. Tap <span className="text-black">+</span> below!
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {Object.entries(groupedTxs).map(([groupTitle, txList]) => {
+                    if (txList.length === 0) return null;
+                    return (
+                      <div key={groupTitle} className="space-y-2">
+                        <div className="text-[11px] font-black uppercase tracking-wider text-gray-400 border-b border-gray-200 pb-1">
+                          {groupTitle}
+                        </div>
+                        <div className="space-y-2">
+                          {txList.map((tx) => {
+                            const amountNum = parseFloat(tx.amount);
+                            const formattedAmt = new Intl.NumberFormat('th-TH', {
+                              style: 'currency',
+                              currency: 'THB',
+                              minimumFractionDigits: 2,
+                            }).format(amountNum);
 
-                        return (
-                          <div
-                            key={tx.id}
-                            className="flex items-center justify-between p-2.5 rounded-xl border border-black bg-[#FAF9F6] shadow-[2px_2px_0px_#000]"
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
+                            return (
                               <div
-                                className={`w-9 h-9 rounded-lg border border-black flex items-center justify-center flex-shrink-0 text-white font-bold ${
-                                  tx.type === 'EXPENSE'
-                                    ? 'bg-[#FF5722]'
-                                    : tx.type === 'INCOME'
-                                    ? 'bg-[#10B981]'
-                                    : 'bg-[#3B82F6]'
-                                }`}
+                                key={tx.id}
+                                className="flex items-center justify-between p-2.5 rounded-xl border border-black bg-[#FAF9F6] shadow-[2px_2px_0px_#000]"
                               >
-                                {tx.type === 'TRANSFER' ? (
-                                  <ArrowLeftRight className="w-5 h-5" />
-                                ) : tx.category?.icon ? (
-                                  <CategoryIcon name={tx.category.icon} className="w-5 h-5" />
-                                ) : tx.type === 'EXPENSE' ? (
-                                  <ArrowUpRight className="w-5 h-5" />
-                                ) : (
-                                  <ArrowDownLeft className="w-5 h-5" />
-                                )}
-                              </div>
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div
+                                    className={`w-9 h-9 rounded-lg border border-black flex items-center justify-center flex-shrink-0 text-white font-bold ${
+                                      tx.type === 'EXPENSE'
+                                        ? 'bg-[#FF5722]'
+                                        : tx.type === 'INCOME'
+                                        ? 'bg-[#10B981]'
+                                        : 'bg-[#3B82F6]'
+                                    }`}
+                                  >
+                                    {tx.type === 'TRANSFER' ? (
+                                      <ArrowLeftRight className="w-5 h-5" />
+                                    ) : tx.category?.icon ? (
+                                      <CategoryIcon name={tx.category.icon} className="w-5 h-5" />
+                                    ) : tx.type === 'EXPENSE' ? (
+                                      <ArrowUpRight className="w-5 h-5" />
+                                    ) : (
+                                      <ArrowDownLeft className="w-5 h-5" />
+                                    )}
+                                  </div>
 
-                              <div className="min-w-0">
-                                <div className="font-bold text-xs text-black truncate">
-                                  {tx.note ||
-                                    (tx.type === 'TRANSFER'
-                                      ? 'Account Transfer'
-                                      : tx.category?.name || tx.type)}
+                                  <div className="min-w-0">
+                                    <div className="font-bold text-xs text-black truncate">
+                                      {tx.note ||
+                                        (tx.type === 'TRANSFER'
+                                          ? 'Account Transfer'
+                                          : tx.category?.name || tx.type)}
+                                    </div>
+                                    <div className="text-[10px] text-gray-500 font-semibold truncate flex items-center gap-1">
+                                      {tx.type === 'TRANSFER' ? (
+                                        <span>
+                                          {tx.fromAccount?.name || 'Wallet'} → {tx.toAccount?.name || 'Wallet'}
+                                        </span>
+                                      ) : (
+                                        <span>
+                                          {tx.fromAccount?.name || tx.toAccount?.name || 'Wallet'}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
-                                <div className="text-[10px] text-gray-500 font-semibold truncate flex items-center gap-1">
-                                  {tx.type === 'TRANSFER' ? (
-                                    <span>
-                                      {tx.fromAccount?.name || 'Wallet'} → {tx.toAccount?.name || 'Wallet'}
-                                    </span>
-                                  ) : (
-                                    <span>
-                                      {tx.fromAccount?.name || tx.toAccount?.name || 'Wallet'}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
 
-                            <div className="text-right flex-shrink-0">
-                              <div
-                                className={`font-black text-xs ${
-                                  tx.type === 'EXPENSE'
-                                    ? 'text-rose-600'
-                                    : tx.type === 'INCOME'
-                                    ? 'text-emerald-600'
-                                    : 'text-blue-600'
-                                }`}
-                              >
-                                {tx.type === 'EXPENSE' ? '-' : tx.type === 'INCOME' ? '+' : ''}
-                                {formattedAmt}
+                                <div className="text-right flex-shrink-0">
+                                  <div
+                                    className={`font-black text-xs ${
+                                      tx.type === 'EXPENSE'
+                                        ? 'text-rose-600'
+                                        : tx.type === 'INCOME'
+                                        ? 'text-emerald-600'
+                                        : 'text-blue-600'
+                                    }`}
+                                  >
+                                    {tx.type === 'EXPENSE' ? '-' : tx.type === 'INCOME' ? '+' : ''}
+                                    {formattedAmt}
+                                  </div>
+                                  <div className="text-[9px] font-bold text-gray-400 uppercase">
+                                    {tx.type}
+                                  </div>
+                                </div>
                               </div>
-                              <div className="text-[9px] font-bold text-gray-400 uppercase">
-                                {tx.type}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </main>
 
       {/* Floating Action Button (FAB) Centered at Thumb Zone */}
