@@ -422,12 +422,12 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
       </div>
 
       {/* 2. Period Filter Controls Bar */}
-      <div className="p-3 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212] flex flex-wrap items-center justify-between gap-2.5">
+      <div className="p-3 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212] flex flex-wrap items-end justify-between gap-3">
         {/* Interactive Date Selector Trigger */}
         <div className="flex-1 min-w-[180px]">
-          <span className="text-[10px] font-black uppercase text-gray-500 block mb-1">
+          <label className="text-[10px] font-black uppercase text-gray-500 block mb-1">
             เลือกช่วงข้อมูล
-          </span>
+          </label>
           <button
             type="button"
             onClick={() => {
@@ -435,7 +435,7 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
               setViewMonth(selectedDate.getMonth());
               setIsPickerOpen(true);
             }}
-            className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#121212] rounded-xl text-xs font-black text-[#121212] shadow-[2px_2px_0px_#121212] flex items-center justify-between hover:bg-amber-50 active:translate-x-[1px] active:translate-y-[1px] transition-all"
+            className="w-full h-10 px-3 bg-[#FAF9F6] border-2 border-[#121212] rounded-xl text-xs font-black text-[#121212] shadow-[2px_2px_0px_#121212] flex items-center justify-between hover:bg-amber-50 active:translate-x-[1px] active:translate-y-[1px] transition-all"
           >
             <span className="truncate">{labels.buttonText}</span>
             <CalendarIcon className="w-4 h-4 text-[#FF5722] flex-shrink-0" />
@@ -443,22 +443,29 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
         </div>
 
         {/* Showing Filter Badge */}
-        <div className="flex-1 min-w-[160px] px-3 py-1.5 bg-slate-200 border-2 border-[#121212] rounded-xl text-xs font-bold text-[#121212] flex items-center justify-between shadow-[2px_2px_0px_#121212]">
-          <div>
-            <span className="text-[9px] font-black uppercase text-gray-600 block">SHOWING</span>
+        <div className="flex-1 min-w-[180px]">
+          <label className="text-[10px] font-black uppercase text-gray-500 block mb-1">
+            SHOWING
+          </label>
+          <div className="w-full h-10 px-3 bg-slate-200 border-2 border-[#121212] rounded-xl text-xs font-bold text-[#121212] flex items-center justify-between shadow-[2px_2px_0px_#121212]">
             <span className="truncate block font-bold text-xs">{labels.showingText}</span>
           </div>
         </div>
 
         {/* Reset Button */}
-        <button
-          type="button"
-          onClick={handleResetDate}
-          className="w-9 h-9 border-2 border-[#121212] bg-white rounded-xl flex items-center justify-center shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] hover:bg-slate-100"
-          title="Reset to Today"
-        >
-          <RefreshCw className="w-4 h-4 text-[#121212]" />
-        </button>
+        <div>
+          <label className="text-[10px] font-black uppercase text-transparent block mb-1 select-none">
+            RESET
+          </label>
+          <button
+            type="button"
+            onClick={handleResetDate}
+            className="w-10 h-10 border-2 border-[#121212] bg-white rounded-xl flex items-center justify-center shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] hover:bg-slate-100 transition-all"
+            title="Reset to Today"
+          >
+            <RefreshCw className="w-4 h-4 text-[#121212]" />
+          </button>
+        </div>
       </div>
 
       {/* 3. Expense Total Summary Hero Pill */}
