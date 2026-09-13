@@ -85,9 +85,11 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({ onSuccess }) => {
         {/* App Logo & Lock Header */}
         <div className="flex flex-col items-center mb-6 text-center">
           <div className="relative mb-3">
-            <div className="w-16 h-16 rounded-2xl bg-[#121212] text-white flex items-center justify-center font-black text-3xl shadow-[4px_4px_0px_#FF5722]">
-              M
-            </div>
+            <img
+              src="/icon.svg"
+              alt="MeTang Logo"
+              className="w-16 h-16 rounded-2xl border-2 border-[#121212] shadow-[4px_4px_0px_#FF5722] object-cover"
+            />
             <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-[#FFD02C] border-2 border-[#121212] flex items-center justify-center shadow-[1px_1px_0px_#121212]">
               <Lock className="w-3.5 h-3.5 text-[#121212] stroke-[3]" />
             </div>

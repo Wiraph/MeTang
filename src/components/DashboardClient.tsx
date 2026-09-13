@@ -196,9 +196,11 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         {/* Top Header */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-[#121212] text-white flex items-center justify-center font-black text-2xl shadow-[4px_4px_0px_#FF5722]">
-              M
-            </div>
+            <img
+              src="/icon.svg"
+              alt="MeTang Logo"
+              className="w-11 h-11 rounded-2xl border-2 border-[#121212] shadow-[3px_3px_0px_#FF5722] object-cover"
+            />
             <div>
               <h1 className="text-2xl font-black uppercase tracking-tight text-[#121212] flex items-center gap-2">
                 MeTang

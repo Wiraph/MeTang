@@ -18,6 +18,12 @@ export const metadata: Metadata = {
   title: "MeTang | Zero-Friction Personal Finance",
   description: "Next-gen zero-friction expense, income, and cross-account transfer manager with instant optimistic sync.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/icon.svg",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
