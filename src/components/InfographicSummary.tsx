@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Account, Category, ExtendedTransaction } from '@/types';
-import { RefreshCw, PieChart, Wallet, ArrowUpDown } from 'lucide-react';
+import { RefreshCw, PieChart, Wallet, ArrowUpDown, Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 interface InfographicSummaryProps {
   accounts: Account[];
@@ -12,42 +12,74 @@ interface InfographicSummaryProps {
 
 type PeriodType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
 
+const THAI_MONTHS_SHORT = [
+  'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+  'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+];
+
+const THAI_MONTHS_FULL = [
+  'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+  'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+];
+
 export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
   accounts,
   categories,
   transactions,
 }) => {
   const [period, setPeriod] = useState<PeriodType>('MONTHLY');
-  const [selectedMonth, setSelectedMonth] = useState<string>(
-    new Date().toISOString().slice(0, 7) // YYYY-MM
-  );
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [isPickerOpen, setIsPickerOpen] = useState<boolean>(false);
 
-  // Filter transactions based on selected period
+  // View state for date/month navigation in picker
+  const [viewYear, setViewYear] = useState<number>(new Date().getFullYear());
+  const [viewMonth, setViewMonth] = useState<number>(new Date().getMonth());
+
+  // Format date to YYYY-MM-DD
+  const formatDateKey = (d: Date) => d.toISOString().split('T')[0];
+
+  // Helper to format Thai date string (e.g., 13 ก.ย. 2569)
+  const formatThaiDate = (d: Date) => {
+    const day = d.getDate();
+    const month = THAI_MONTHS_SHORT[d.getMonth()];
+    const yearBE = d.getFullYear() + 543;
+    return `${day} ${month} ${yearBE}`;
+  };
+
+  // Calculate 7-day range for WEEKLY mode
+  const getWeeklyRange = (d: Date) => {
+    const end = new Date(d);
+    const start = new Date(d);
+    start.setDate(end.getDate() - 6);
+    return { start, end };
+  };
+
+  // Filter transactions based on period and selectedDate
   const filteredTransactions = useMemo(() => {
-    const today = new Date();
+    const selectedStr = formatDateKey(selectedDate);
+    const yearStr = selectedDate.getFullYear().toString();
+    const monthStr = `${yearStr}-${(selectedDate.getMonth() + 1).toString().padStart(2, '0')}`;
+
+    const { start: weekStart, end: weekEnd } = getWeeklyRange(selectedDate);
+    const weekStartStr = formatDateKey(weekStart);
+    const weekEndStr = formatDateKey(weekEnd);
 
     return transactions.filter((tx) => {
       const txDateStr = typeof tx.transactionDate === 'string' ? tx.transactionDate : '';
       if (!txDateStr) return true;
 
-      const txDate = new Date(txDateStr);
-
       if (period === 'DAILY') {
-        const todayStr = today.toISOString().split('T')[0];
-        return txDateStr === todayStr;
+        return txDateStr === selectedStr;
       } else if (period === 'WEEKLY') {
-        const sevenDaysAgo = new Date(today);
-        sevenDaysAgo.setDate(today.getDate() - 7);
-        return txDate >= sevenDaysAgo && txDate <= today;
+        return txDateStr >= weekStartStr && txDateStr <= weekEndStr;
       } else if (period === 'MONTHLY') {
-        return txDateStr.startsWith(selectedMonth);
+        return txDateStr.startsWith(monthStr);
       } else if (period === 'YEARLY') {
-        const currentYear = selectedMonth.slice(0, 4);
-        return txDateStr.startsWith(currentYear);
+        return txDateStr.startsWith(yearStr);
       }
       return true;
     });
-  }, [transactions, period, selectedMonth]);
+  }, [transactions, period, selectedDate]);
 
   // Calculate Category Share (Expenses grouped by category)
   const categoryShare = useMemo(() => {
@@ -56,7 +88,6 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
 
     const palette = ['#FF5722', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#64748B'];
     let paletteIdx = 0;
-
     let totalExpenseAmount = 0;
 
     expenseTxs.forEach((tx) => {
@@ -92,31 +123,46 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
     return sorted.slice(0, 5);
   }, [filteredTransactions]);
 
-  // Format Date Range string (e.g. กันยายน 2569 or September 2026)
-  const formatPeriodTitle = () => {
-    const [yearStr, monthStr] = selectedMonth.split('-');
-    const yearBE = parseInt(yearStr || '2026') + 543;
-    const monthNames = [
-      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-    ];
-    const monthIdx = parseInt(monthStr || '01', 10) - 1;
-    const monthThai = monthNames[monthIdx] || '';
+  // Dynamic Header Title & Active Showing Label
+  const getFilterLabels = () => {
+    const yearBE = selectedDate.getFullYear() + 543;
+    const monthFull = THAI_MONTHS_FULL[selectedDate.getMonth()];
+    const monthShort = THAI_MONTHS_SHORT[selectedDate.getMonth()];
 
-    if (period === 'DAILY') return `วันนี้ (${new Date().toLocaleDateString('th-TH')})`;
-    if (period === 'WEEKLY') return `7 วันที่ผ่านมา`;
-    if (period === 'MONTHLY') return `${monthThai} ${yearBE}`;
-    if (period === 'YEARLY') return `ปี ${yearBE}`;
-    return `${monthThai} ${yearBE}`;
+    if (period === 'DAILY') {
+      const label = formatThaiDate(selectedDate);
+      return { buttonText: label, showingText: label, statTitle: 'DAILY EXPENSE' };
+    } else if (period === 'WEEKLY') {
+      const { start, end } = getWeeklyRange(selectedDate);
+      const buttonText = formatThaiDate(selectedDate);
+      const showingText = `${formatThaiDate(start)} - ${formatThaiDate(end)}`;
+      return { buttonText, showingText, statTitle: 'WEEKLY EXPENSE' };
+    } else if (period === 'MONTHLY') {
+      const label = `${monthFull} ${yearBE}`;
+      return { buttonText: label, showingText: label, statTitle: 'MONTHLY EXPENSE' };
+    } else {
+      const label = `ปี ${yearBE}`;
+      return { buttonText: label, showingText: label, statTitle: 'YEARLY EXPENSE' };
+    }
   };
 
-  // SVG Donut Chart Calculation
+  const labels = getFilterLabels();
+
+  // Reset to today
+  const handleResetDate = () => {
+    const today = new Date();
+    setSelectedDate(today);
+    setViewYear(today.getFullYear());
+    setViewMonth(today.getMonth());
+  };
+
+  // Donut Chart renderer
   const renderDonutChart = () => {
     if (categoryShare.items.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center h-48 text-gray-400 font-bold text-xs">
           <PieChart className="w-12 h-12 mb-2 stroke-1 opacity-50 text-gray-400" />
-          <span>ไม่มีข้อมูลค่าใช้จ่าย</span>
+          <span>ไม่มีข้อมูลค่าใช้จ่ายช่วงนี้</span>
         </div>
       );
     }
@@ -151,7 +197,6 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
           })}
         </svg>
 
-        {/* Center label */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
           <span className="text-[10px] font-black uppercase text-gray-500">รวมรายจ่าย</span>
           <span className="font-tabular text-sm font-black text-[#121212]">
@@ -162,15 +207,209 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
     );
   };
 
+  // Helper to generate days grid for Calendar (DAILY / WEEKLY)
+  const renderCalendarGrid = () => {
+    const firstDayOfMonth = new Date(viewYear, viewMonth, 1);
+    const lastDayOfMonth = new Date(viewYear, viewMonth + 1, 0);
+    const startDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sun
+    const daysInMonth = lastDayOfMonth.getDate();
+
+    // Prev month padding
+    const prevMonthLastDay = new Date(viewYear, viewMonth, 0).getDate();
+    const prevPadding = Array.from({ length: startDayOfWeek }, (_, i) => prevMonthLastDay - startDayOfWeek + i + 1);
+
+    // Current month days
+    const currentDays = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+
+    // Next month padding
+    const totalCells = prevPadding.length + currentDays.length;
+    const nextPaddingCount = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+    const nextPadding = Array.from({ length: nextPaddingCount }, (_, i) => i + 1);
+
+    return (
+      <div className="space-y-2">
+        {/* Calendar Navigation Header */}
+        <div className="flex items-center justify-between bg-slate-100 p-1.5 rounded-xl border-2 border-[#121212] mb-3">
+          <button
+            type="button"
+            onClick={() => {
+              if (viewMonth === 0) {
+                setViewMonth(11);
+                setViewYear(viewYear - 1);
+              } else {
+                setViewMonth(viewMonth - 1);
+              }
+            }}
+            className="w-8 h-8 rounded-lg bg-white border-2 border-[#121212] flex items-center justify-center font-black shadow-[1px_1px_0px_#121212] hover:bg-amber-100"
+          >
+            <ChevronLeft className="w-4 h-4 text-black" />
+          </button>
+          <div className="font-black text-sm text-[#121212]">
+            {THAI_MONTHS_FULL[viewMonth]} {viewYear + 543}
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (viewMonth === 11) {
+                setViewMonth(0);
+                setViewYear(viewYear + 1);
+              } else {
+                setViewMonth(viewMonth + 1);
+              }
+            }}
+            className="w-8 h-8 rounded-lg bg-white border-2 border-[#121212] flex items-center justify-center font-black shadow-[1px_1px_0px_#121212] hover:bg-amber-100"
+          >
+            <ChevronRight className="w-4 h-4 text-black" />
+          </button>
+        </div>
+
+        {/* Days of week header */}
+        <div className="grid grid-cols-7 gap-1 text-center font-black text-[11px] text-gray-500 uppercase mb-1">
+          <span>SU</span><span>MO</span><span>TU</span><span>WE</span><span>TH</span><span>FR</span><span>SA</span>
+        </div>
+
+        {/* Calendar days grid */}
+        <div className="grid grid-cols-7 gap-1 text-center">
+          {prevPadding.map((day, idx) => (
+            <div key={'p-' + idx} className="h-9 flex items-center justify-center text-xs font-bold text-gray-300">
+              {day}
+            </div>
+          ))}
+
+          {currentDays.map((day) => {
+            const dateObj = new Date(viewYear, viewMonth, day);
+            const isSelected = formatDateKey(dateObj) === formatDateKey(selectedDate);
+            return (
+              <button
+                key={day}
+                type="button"
+                onClick={() => {
+                  setSelectedDate(dateObj);
+                  setIsPickerOpen(false);
+                }}
+                className={`h-9 rounded-lg font-black text-xs transition-all flex items-center justify-center font-tabular border ${
+                  isSelected
+                    ? 'bg-[#FF5722] text-white border-[#121212] shadow-[2px_2px_0px_#121212] scale-105'
+                    : 'bg-white text-[#121212] border-transparent hover:border-[#121212] hover:bg-amber-50'
+                }`}
+              >
+                {day}
+              </button>
+            );
+          })}
+
+          {nextPadding.map((day, idx) => (
+            <div key={'n-' + idx} className="h-9 flex items-center justify-center text-xs font-bold text-gray-300">
+              {day}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Helper to render Month Picker (MONTHLY)
+  const renderMonthPickerGrid = () => {
+    return (
+      <div className="space-y-3">
+        {/* Year Navigation Header */}
+        <div className="flex items-center justify-between bg-slate-100 p-1.5 rounded-xl border-2 border-[#121212] mb-3">
+          <button
+            type="button"
+            onClick={() => setViewYear(viewYear - 1)}
+            className="w-8 h-8 rounded-lg bg-white border-2 border-[#121212] flex items-center justify-center font-black shadow-[1px_1px_0px_#121212] hover:bg-amber-100"
+          >
+            <ChevronLeft className="w-4 h-4 text-black" />
+          </button>
+          <div className="font-black text-sm text-[#121212]">
+            ปี {viewYear + 543} ({viewYear})
+          </div>
+          <button
+            type="button"
+            onClick={() => setViewYear(viewYear + 1)}
+            className="w-8 h-8 rounded-lg bg-white border-2 border-[#121212] flex items-center justify-center font-black shadow-[1px_1px_0px_#121212] hover:bg-amber-100"
+          >
+            <ChevronRight className="w-4 h-4 text-black" />
+          </button>
+        </div>
+
+        {/* 12 Thai Month Buttons Grid */}
+        <div className="grid grid-cols-3 gap-2">
+          {THAI_MONTHS_SHORT.map((mName, mIdx) => {
+            const isSelected =
+              selectedDate.getFullYear() === viewYear && selectedDate.getMonth() === mIdx;
+            return (
+              <button
+                key={mIdx}
+                type="button"
+                onClick={() => {
+                  setSelectedDate(new Date(viewYear, mIdx, 1));
+                  setIsPickerOpen(false);
+                }}
+                className={`py-3 px-2 rounded-xl font-black text-xs transition-all border-2 border-[#121212] ${
+                  isSelected
+                    ? 'bg-[#FF5722] text-white shadow-[2px_2px_0px_#121212]'
+                    : 'bg-white text-[#121212] hover:bg-amber-50 shadow-[1px_1px_0px_#121212]'
+                }`}
+              >
+                {mName}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  // Helper to render Year Picker (YEARLY)
+  const renderYearPickerGrid = () => {
+    const currentYear = new Date().getFullYear();
+    const years = [currentYear - 2, currentYear - 1, currentYear, currentYear + 1, currentYear + 2];
+
+    return (
+      <div className="space-y-3">
+        <div className="text-center font-black text-sm text-[#121212] mb-3">
+          เลือกปี พ.ศ. / ค.ศ.
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {years.map((y) => {
+            const isSelected = selectedDate.getFullYear() === y;
+            return (
+              <button
+                key={y}
+                type="button"
+                onClick={() => {
+                  setSelectedDate(new Date(y, 0, 1));
+                  setIsPickerOpen(false);
+                }}
+                className={`py-3 px-2 rounded-xl font-black text-xs transition-all border-2 border-[#121212] ${
+                  isSelected
+                    ? 'bg-[#FF5722] text-white shadow-[2px_2px_0px_#121212]'
+                    : 'bg-white text-[#121212] hover:bg-amber-50 shadow-[1px_1px_0px_#121212]'
+                }`}
+              >
+                ปี {y + 543} ({y})
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-4 font-sans">
+    <div className="space-y-4 font-sans relative">
       {/* 1. Period Selector Segmented Bar (DAILY | WEEKLY | MONTHLY | YEARLY) */}
       <div className="grid grid-cols-4 gap-1.5 p-1 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212]">
         {(['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'] as PeriodType[]).map((p) => (
           <button
             key={p}
             type="button"
-            onClick={() => setPeriod(p)}
+            onClick={() => {
+              setPeriod(p);
+              setViewYear(selectedDate.getFullYear());
+              setViewMonth(selectedDate.getMonth());
+            }}
             className={`py-2 px-1 rounded-lg font-black text-xs uppercase tracking-wider transition-all border border-[#121212] ${
               period === p
                 ? 'bg-[#FF5722] text-white shadow-[2px_2px_0px_#121212]'
@@ -182,40 +421,67 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
         ))}
       </div>
 
-      {/* 2. Period Filter Selector Controls */}
-      <div className="p-3 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212] flex flex-wrap items-center justify-between gap-2">
-        <div className="flex-1 min-w-[160px]">
-          <span className="text-[10px] font-black uppercase text-gray-500 block mb-0.5">
+      {/* 2. Period Filter Controls Bar */}
+      <div className="p-3 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212] flex flex-wrap items-center justify-between gap-2.5">
+        {/* Interactive Date Selector Trigger */}
+        <div className="flex-1 min-w-[180px]">
+          <span className="text-[10px] font-black uppercase text-gray-500 block mb-1">
             เลือกช่วงข้อมูล
           </span>
-          <div className="relative">
-            <input
-              type={period === 'YEARLY' ? 'number' : 'month'}
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="w-full px-3 py-1.5 bg-[#FAF9F6] border-2 border-[#121212] rounded-lg text-xs font-bold text-[#121212] shadow-[2px_2px_0px_#121212] focus:outline-none"
-            />
-          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setViewYear(selectedDate.getFullYear());
+              setViewMonth(selectedDate.getMonth());
+              setIsPickerOpen(true);
+            }}
+            className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#121212] rounded-xl text-xs font-black text-[#121212] shadow-[2px_2px_0px_#121212] flex items-center justify-between hover:bg-amber-50 active:translate-x-[1px] active:translate-y-[1px] transition-all"
+          >
+            <span className="truncate">{labels.buttonText}</span>
+            <CalendarIcon className="w-4 h-4 text-[#FF5722] flex-shrink-0" />
+          </button>
         </div>
 
-        <div className="flex-1 min-w-[140px] px-3 py-1.5 bg-gray-200 border-2 border-[#121212] rounded-lg text-xs font-bold text-[#121212] flex items-center justify-between shadow-[2px_2px_0px_#121212]">
+        {/* Showing Filter Badge */}
+        <div className="flex-1 min-w-[160px] px-3 py-1.5 bg-slate-200 border-2 border-[#121212] rounded-xl text-xs font-bold text-[#121212] flex items-center justify-between shadow-[2px_2px_0px_#121212]">
           <div>
             <span className="text-[9px] font-black uppercase text-gray-600 block">SHOWING</span>
-            <span className="truncate block font-bold">{formatPeriodTitle()}</span>
+            <span className="truncate block font-bold text-xs">{labels.showingText}</span>
           </div>
         </div>
 
+        {/* Reset Button */}
         <button
           type="button"
-          onClick={() => setSelectedMonth(new Date().toISOString().slice(0, 7))}
-          className="w-9 h-9 border-2 border-[#121212] bg-white rounded-lg flex items-center justify-center shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-          title="Reset filter"
+          onClick={handleResetDate}
+          className="w-9 h-9 border-2 border-[#121212] bg-white rounded-xl flex items-center justify-center shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px] hover:bg-slate-100"
+          title="Reset to Today"
         >
           <RefreshCw className="w-4 h-4 text-[#121212]" />
         </button>
       </div>
 
-      {/* 3. Infographic Two-Column / Grid Layout */}
+      {/* 3. Expense Total Summary Hero Pill */}
+      <div className="p-4 bg-white border-2 border-[#121212] rounded-2xl shadow-[4px_4px_0px_#121212] flex items-center justify-between">
+        <div>
+          <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider block">
+            {labels.statTitle}
+          </span>
+          <span className="font-tabular text-2xl sm:text-3xl font-black text-[#FF5722]">
+            ฿{categoryShare.totalExpenseAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+          </span>
+        </div>
+        <div className="text-right">
+          <span className="text-[10px] font-black uppercase text-gray-500 tracking-wider block">
+            TRANSACTIONS
+          </span>
+          <span className="font-tabular text-xl font-black text-[#121212]">
+            {filteredTransactions.length} items
+          </span>
+        </div>
+      </div>
+
+      {/* 4. Infographic Two-Column / Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
         {/* Left Card: CATEGORY SHARE */}
         <div className="md:col-span-6 bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212] flex flex-col justify-between">
@@ -344,6 +610,65 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 5. Custom Neo-Brutalist Date/Month/Year Picker Modal (Matches Screenshots 100%) */}
+      {isPickerOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="relative w-full max-w-sm bg-[#FAF9F6] border-4 border-[#121212] rounded-3xl shadow-[8px_8px_0px_#121212] p-5 z-10 flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4 border-b-2 border-[#121212] pb-3">
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="w-5 h-5 text-[#FF5722]" />
+                <h3 className="text-base font-black uppercase text-[#121212]">
+                  {period === 'DAILY' || period === 'WEEKLY'
+                    ? 'เลือกวันที่'
+                    : period === 'MONTHLY'
+                    ? 'เลือกเดือน'
+                    : 'เลือกปี'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPickerOpen(false)}
+                className="w-8 h-8 rounded-full border-2 border-[#121212] bg-white flex items-center justify-center font-bold shadow-[2px_2px_0px_#121212] active:translate-x-[1px] active:translate-y-[1px]"
+              >
+                <X className="w-4 h-4 text-[#121212]" />
+              </button>
+            </div>
+
+            {/* Content Body */}
+            <div className="mb-4">
+              {period === 'DAILY' || period === 'WEEKLY'
+                ? renderCalendarGrid()
+                : period === 'MONTHLY'
+                ? renderMonthPickerGrid()
+                : renderYearPickerGrid()}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="grid grid-cols-2 gap-2 border-t-2 border-[#121212] pt-3">
+              <button
+                type="button"
+                onClick={handleResetDate}
+                className="py-2.5 rounded-xl border-2 border-[#121212] bg-white text-[#121212] font-black text-xs uppercase shadow-[2px_2px_0px_#121212] hover:bg-slate-100 active:translate-x-[1px] active:translate-y-[1px]"
+              >
+                {period === 'DAILY' || period === 'WEEKLY'
+                  ? 'TODAY'
+                  : period === 'MONTHLY'
+                  ? 'THIS MONTH'
+                  : 'THIS YEAR'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPickerOpen(false)}
+                className="py-2.5 rounded-xl border-2 border-[#121212] bg-[#121212] text-white font-black text-xs uppercase shadow-[2px_2px_0px_#FF5722] active:translate-x-[1px] active:translate-y-[1px]"
+              >
+                CLOSE
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
