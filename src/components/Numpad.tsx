@@ -52,7 +52,7 @@ export const Numpad: React.FC<NumpadProps> = ({ value, onChange }) => {
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-2 w-full my-2">
+    <div className="grid grid-cols-3 gap-2.5 w-full my-2">
       {keys.map((key) => {
         const isActionKey = key === 'C' || key === 'DEL';
         return (
@@ -60,16 +60,16 @@ export const Numpad: React.FC<NumpadProps> = ({ value, onChange }) => {
             key={key}
             type="button"
             onClick={() => handleKeyPress(key)}
-            className={`h-12 rounded-2xl font-bold text-lg flex items-center justify-center transition-all select-none border ${
+            className={`h-12 border-2 border-black rounded-xl font-black text-xl flex items-center justify-center transition-all select-none ${
               isActionKey
-                ? 'bg-stone-100 border-stone-200/80 text-stone-600 hover:bg-stone-200/80 active:scale-[0.96]'
-                : 'bg-white border-stone-200/80 text-stone-900 hover:bg-stone-50 active:scale-[0.96] shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]'
+                ? 'bg-amber-200 text-black shadow-[2px_2px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
+                : 'bg-white text-black shadow-[3px_3px_0px_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#000]'
             }`}
           >
             {key === 'DEL' ? (
-              <Delete className="w-5 h-5 text-stone-500" />
+              <Delete className="w-5 h-5" />
             ) : key === 'C' ? (
-              <RotateCcw className="w-5 h-5 text-stone-500" />
+              <RotateCcw className="w-5 h-5" />
             ) : (
               key
             )}
