@@ -207,7 +207,7 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
   const renderDonutChart = () => {
     if (categoryShare.items.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center h-48 text-gray-400 font-bold text-xs">
+        <div className="flex flex-col items-center justify-center py-12 text-gray-400 font-bold text-xs">
           <PieChart className="w-12 h-12 mb-2 stroke-1 opacity-50 text-gray-400" />
           <span>ไม่มีข้อมูล{chartType === 'EXPENSE' ? 'ค่าใช้จ่าย' : 'รายรับ'}ช่วงนี้</span>
         </div>
@@ -215,13 +215,13 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
     }
 
     let cumulativePercent = 0;
-    const strokeWidth = 24;
-    const radius = 50;
+    const strokeWidth = 22;
+    const radius = 58;
     const circumference = 2 * Math.PI * radius;
 
     return (
-      <div className="relative flex flex-col items-center justify-center my-4">
-        <svg viewBox="0 0 140 140" className="w-48 h-48 -rotate-90 transform">
+      <div className="relative flex flex-col items-center justify-center my-2">
+        <svg viewBox="0 0 160 160" className="w-52 h-52 sm:w-56 sm:h-56 -rotate-90 transform">
           {categoryShare.items.map((item, idx) => {
             const strokeDasharray = `${(item.percentage * circumference) / 100} ${circumference}`;
             const strokeDashoffset = -((cumulativePercent * circumference) / 100);
@@ -230,8 +230,8 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
             return (
               <circle
                 key={idx}
-                cx="70"
-                cy="70"
+                cx="80"
+                cy="80"
                 r={radius}
                 fill="transparent"
                 stroke={item.color}
@@ -244,11 +244,11 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
           })}
         </svg>
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-          <span className="text-[10px] font-black uppercase text-gray-500">
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4">
+          <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">
             {chartType === 'EXPENSE' ? 'รวมรายจ่าย' : 'รวมรายรับ'}
           </span>
-          <span className={`font-tabular text-sm font-black ${chartType === 'EXPENSE' ? 'text-[#FF5722]' : 'text-[#10B981]'}`}>
+          <span className={`font-tabular text-base sm:text-lg font-black ${chartType === 'EXPENSE' ? 'text-[#FF5722]' : 'text-[#10B981]'}`}>
             ฿{categoryShare.totalAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
           </span>
         </div>
@@ -557,7 +557,7 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
       {/* 4. Infographic Two-Column / Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
         {/* Left Card: CATEGORY SHARE (With Expense / Income Switcher) */}
-        <div className="md:col-span-6 bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212] flex flex-col justify-between">
+        <div className="md:col-span-6 bg-white border-2 border-[#121212] rounded-2xl p-4 shadow-[4px_4px_0px_#121212] flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between border-b-2 border-[#121212] pb-2.5 mb-2">
               <div className="flex items-center gap-2">
@@ -595,25 +595,51 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
             </div>
 
             {/* Donut Visual */}
-            {renderDonutChart()}
+            <div className="flex items-center justify-center my-2">
+              {renderDonutChart()}
+            </div>
           </div>
 
-          {/* Category Legends */}
-          <div className="mt-4 pt-3 border-t border-gray-200">
-            <div className="flex flex-wrap gap-2">
-              {categoryShare.items.map((cat, idx) => (
-                <div key={idx} className="flex items-center gap-1.5 text-xs font-bold text-[#121212]">
-                  <div
-                    className="w-3 h-3 rounded-sm border border-[#121212] flex-shrink-0"
-                    style={{ backgroundColor: cat.color }}
-                  />
-                  <span>{cat.name}</span>
-                  <span className="font-tabular text-gray-500 text-[10px]">
-                    ({cat.percentage.toFixed(0)}%)
-                  </span>
+          {/* Category Progress Bars List */}
+          <div className="mt-4 pt-3 border-t-2 border-[#121212] space-y-2.5">
+            {categoryShare.items.length === 0 ? (
+              <div className="text-center text-xs font-bold text-gray-400 py-2">
+                ไม่มีหมวดหมู่ย่อย
+              </div>
+            ) : (
+              categoryShare.items.map((cat, idx) => (
+                <div key={idx} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div
+                        className="w-3 h-3 rounded-sm border border-[#121212] flex-shrink-0"
+                        style={{ backgroundColor: cat.color }}
+                      />
+                      <span className="truncate text-[#121212] font-black">{cat.name}</span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="font-tabular font-black text-[#121212]">
+                        ฿{cat.amount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+                      </span>
+                      <span className="font-tabular text-[10px] font-black bg-slate-100 border border-[#121212] px-1.5 py-0.5 rounded-md text-gray-700">
+                        {cat.percentage.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Neo-Brutalist Progress Bar Track */}
+                  <div className="w-full h-2.5 bg-slate-100 border border-[#121212] rounded-full overflow-hidden">
+                    <div
+                      className="h-full transition-all duration-500 rounded-full"
+                      style={{
+                        width: `${Math.max(cat.percentage, 2)}%`,
+                        backgroundColor: cat.color,
+                      }}
+                    />
+                  </div>
                 </div>
-              ))}
-            </div>
+              ))
+            )}
           </div>
         </div>
 
