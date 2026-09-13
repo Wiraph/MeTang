@@ -41,6 +41,24 @@ export async function getDashboardDataAction(): Promise<{
   }
 }
 
+export async function updateAccountBalanceAction(accountId: string, newBalance: number) {
+  if (newBalance < 0) {
+    throw new Error('Balance cannot be negative.');
+  }
+
+  const amountDecimal = newBalance.toFixed(2);
+  await db
+    .update(accounts)
+    .set({
+      currentBalance: amountDecimal,
+      updatedAt: new Date(),
+    })
+    .where(eq(accounts.id, accountId));
+
+  revalidatePath('/');
+  return { success: true };
+}
+
 export async function createTransactionAction(input: TransactionInput) {
   const { type, amount, fromAccountId, toAccountId, categoryId, note, transactionDate } = input;
 

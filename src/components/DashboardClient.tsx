@@ -5,9 +5,10 @@ import { Account, Category, ExtendedTransaction, TransactionInput } from '@/type
 import { createTransactionAction } from '@/actions/transactions';
 import { AccountCard } from './AccountCard';
 import { QuickEntryDrawer } from './QuickEntryDrawer';
+import { EditBalancesModal } from './EditBalancesModal';
 import { CategoryIcon } from './CategoryIcon';
 import { InfographicSummary } from './InfographicSummary';
-import { Plus, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Wallet, LayoutGrid, BarChart2, X } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Wallet, LayoutGrid, BarChart2, X, Settings } from 'lucide-react';
 
 interface DashboardClientProps {
   initialAccounts: Account[];
@@ -26,6 +27,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
   initialTransactions,
 }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isEditBalancesOpen, setIsEditBalancesOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'infographic'>('dashboard');
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
@@ -195,8 +197,16 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
 
         {/* Total Net Worth Card */}
         <div className="p-5 rounded-2xl border-2 border-[#121212] bg-[#FFD02C] shadow-[4px_4px_0px_#121212] relative overflow-hidden">
-          <div className="text-[11px] font-extrabold uppercase text-[#121212]/80 tracking-wider mb-1">
-            Total Net Worth
+          <div className="text-[11px] font-extrabold uppercase text-[#121212]/80 tracking-wider mb-1 flex items-center justify-between">
+            <span>Total Net Worth</span>
+            <button
+              type="button"
+              onClick={() => setIsEditBalancesOpen(true)}
+              className="px-2 py-0.5 rounded-md bg-[#121212] text-white text-[9px] font-extrabold uppercase tracking-wider flex items-center gap-1 shadow-[1px_1px_0px_#000] active:translate-x-[1px] active:translate-y-[1px]"
+            >
+              <Settings className="w-3 h-3 text-[#FFD02C]" />
+              <span>Edit Balances</span>
+            </button>
           </div>
           <div className="font-tabular text-3xl sm:text-4xl font-black text-[#121212] tracking-tight">
             {formattedNetWorth}
@@ -226,7 +236,14 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
                 <h2 className="text-xs font-black uppercase tracking-wider text-[#121212]">
                   Wallets & Accounts ({state.accounts.length})
                 </h2>
-                <span className="text-[11px] font-extrabold text-gray-500">Tap to Select</span>
+                <button
+                  type="button"
+                  onClick={() => setIsEditBalancesOpen(true)}
+                  className="text-[11px] font-extrabold text-black underline flex items-center gap-1"
+                >
+                  <Settings className="w-3 h-3 text-[#FF5722]" />
+                  <span>Set Balances</span>
+                </button>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {state.accounts.map((acc) => (
@@ -378,6 +395,13 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         categories={initialCategories}
         onSubmit={handleCreateTransaction}
         defaultAccountId={selectedAccountId}
+      />
+
+      {/* Set Balances Modal */}
+      <EditBalancesModal
+        isOpen={isEditBalancesOpen}
+        onClose={() => setIsEditBalancesOpen(false)}
+        accounts={state.accounts}
       />
     </div>
   );
