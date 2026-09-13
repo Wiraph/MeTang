@@ -1,39 +1,49 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { verifyPinAction } from '@/actions/auth';
 import { Lock, KeyRound, ShieldAlert, CheckCircle2, ArrowRight } from 'lucide-react';
 
 interface PinLockScreenProps {
   onSuccess: () => void;
 }
 
-const CORRECT_PIN = '095225';
-
 export const PinLockScreen: React.FC<PinLockScreenProps> = ({ onSuccess }) => {
   const [pin, setPin] = useState<string>('');
   const [error, setError] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(false);
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
 
-  const handleKeyPress = (numStr: string) => {
-    if (isSuccess) return;
+  const handleKeyPress = async (numStr: string) => {
+    if (isSuccess || isVerifying) return;
     if (error) setError(false);
 
     if (pin.length < 6) {
       const nextPin = pin + numStr;
       setPin(nextPin);
 
-      // Auto-validate when 6th digit is entered
+      // Auto-validate via Server Action when 6th digit is entered
       if (nextPin.length === 6) {
-        if (nextPin === CORRECT_PIN) {
-          setIsSuccess(true);
-          setTimeout(() => {
-            onSuccess();
-          }, 400);
-        } else {
+        setIsVerifying(true);
+        try {
+          const isValid = await verifyPinAction(nextPin);
+          if (isValid) {
+            setIsSuccess(true);
+            setTimeout(() => {
+              onSuccess();
+            }, 400);
+          } else {
+            setError(true);
+            setTimeout(() => {
+              setPin('');
+              setIsVerifying(false);
+            }, 600);
+          }
+        } catch {
           setError(true);
-          // Shake and reset after brief delay
           setTimeout(() => {
             setPin('');
+            setIsVerifying(false);
           }, 600);
         }
       }
