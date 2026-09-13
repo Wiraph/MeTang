@@ -132,6 +132,17 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
 
   const availableCategories = categories.filter((c) => c.type === type);
 
+  const getThemeColorClass = () => {
+    switch (type) {
+      case 'EXPENSE':
+        return 'bg-[#FF5722] text-white shadow-[2px_2px_0px_#121212]';
+      case 'INCOME':
+        return 'bg-[#10B981] text-white shadow-[2px_2px_0px_#121212]';
+      case 'TRANSFER':
+        return 'bg-[#3B82F6] text-white shadow-[2px_2px_0px_#121212]';
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4">
       {/* Backdrop click to close */}
@@ -197,7 +208,7 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
           onClear={() => setAmountStr('0')}
         />
 
-        {/* TRANSFER Mode: Separate TRANSFER FROM & TRANSFER TO Grids */}
+        {/* TRANSFER Mode vs EXPENSE/INCOME Mode */}
         {type === 'TRANSFER' ? (
           <div className="space-y-3 mb-3">
             {/* TRANSFER FROM SECTION */}
@@ -221,7 +232,7 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
                       }}
                       className={`py-2 px-2 rounded-xl border-2 border-[#121212] text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
                         isSelected
-                          ? 'bg-[#FF5722] text-white shadow-[2px_2px_0px_#121212]'
+                          ? 'bg-[#3B82F6] text-white shadow-[2px_2px_0px_#121212]'
                           : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
                       }`}
                     >
@@ -253,7 +264,7 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
                         onClick={() => setToAccountId(acc.id)}
                         className={`py-2 px-2 rounded-xl border-2 border-[#121212] text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
                           isSelected
-                            ? 'bg-[#FF5722] text-white shadow-[2px_2px_0px_#121212]'
+                            ? 'bg-[#3B82F6] text-white shadow-[2px_2px_0px_#121212]'
                             : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
                         }`}
                       >
@@ -269,65 +280,66 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
             </div>
           </div>
         ) : (
-          /* EXPENSE / INCOME Single Account Selector */
-          <div className="mb-3">
-            <label className="text-xs font-black uppercase text-gray-700 tracking-wider block mb-1.5">
-              {type === 'EXPENSE' ? 'Pay From Wallet' : 'Deposit To Wallet'}
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {accounts.map((acc) => {
-                const isSelected = type === 'EXPENSE' ? fromAccountId === acc.id : toAccountId === acc.id;
-                return (
-                  <button
-                    key={acc.id}
-                    type="button"
-                    onClick={() => {
-                      if (type === 'EXPENSE') setFromAccountId(acc.id);
-                      else setToAccountId(acc.id);
-                    }}
-                    className={`px-2.5 py-1 rounded-lg border-2 border-[#121212] text-xs font-bold transition-all flex items-center gap-1.5 ${
-                      isSelected
-                        ? 'bg-[#121212] text-white shadow-[2px_2px_0px_#121212]'
-                        : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
-                    }`}
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full border border-black"
-                      style={{ backgroundColor: acc.color }}
-                    />
-                    {acc.name}
-                  </button>
-                );
-              })}
+          /* EXPENSE / INCOME Cards Grid (Structured like Transfer) */
+          <div className="space-y-3 mb-3">
+            {/* Account Selector Card */}
+            <div className="p-3 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212]">
+              <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-2">
+                {type === 'EXPENSE' ? 'PAY FROM WALLET' : 'DEPOSIT TO WALLET'}
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {accounts.map((acc) => {
+                  const isSelected = type === 'EXPENSE' ? fromAccountId === acc.id : toAccountId === acc.id;
+                  return (
+                    <button
+                      key={acc.id}
+                      type="button"
+                      onClick={() => {
+                        if (type === 'EXPENSE') setFromAccountId(acc.id);
+                        else setToAccountId(acc.id);
+                      }}
+                      className={`py-2 px-2 rounded-xl border-2 border-[#121212] text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                        isSelected
+                          ? getThemeColorClass()
+                          : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
+                      }`}
+                    >
+                      <div
+                        className="w-2.5 h-2.5 rounded-full border border-black flex-shrink-0"
+                        style={{ backgroundColor: acc.color }}
+                      />
+                      <span className="truncate">{acc.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
 
-        {/* Category Selector (Hidden for TRANSFER) */}
-        {type !== 'TRANSFER' && (
-          <div className="mb-3">
-            <label className="text-xs font-black uppercase text-gray-700 tracking-wider block mb-1.5">
-              Category
-            </label>
-            <div className="flex flex-wrap gap-1.5">
-              {availableCategories.map((cat) => {
-                const isSelected = categoryId === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => setCategoryId(cat.id)}
-                    className={`px-2.5 py-1 rounded-lg border-2 border-[#121212] text-xs font-bold transition-all flex items-center gap-1.5 ${
-                      isSelected
-                        ? 'bg-[#FFD02C] text-[#121212] shadow-[2px_2px_0px_#121212]'
-                        : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
-                    }`}
-                  >
-                    <CategoryIcon name={cat.icon} className="w-3.5 h-3.5" />
-                    {cat.name}
-                  </button>
-                );
-              })}
+            {/* Category Selector Card */}
+            <div className="p-3 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212]">
+              <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-2">
+                CATEGORY
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {availableCategories.map((cat) => {
+                  const isSelected = categoryId === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setCategoryId(cat.id)}
+                      className={`py-2 px-2 rounded-xl border-2 border-[#121212] text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                        isSelected
+                          ? getThemeColorClass()
+                          : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
+                      }`}
+                    >
+                      <CategoryIcon name={cat.icon} className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span className="truncate">{cat.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         )}
