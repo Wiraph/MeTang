@@ -112,7 +112,7 @@ export const PinLockScreen: React.FC<PinLockScreenProps> = ({ onSuccess }) => {
           {error && (
             <div className="flex items-center gap-1.5 text-xs font-black text-rose-600 bg-rose-100 border border-rose-400 px-3 py-1 rounded-full animate-shake">
               <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Incorrect PIN (095225)</span>
+              <span>Incorrect PIN. Try again.</span>
             </div>
           )}
           {isSuccess && (
