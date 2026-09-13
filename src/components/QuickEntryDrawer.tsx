@@ -113,6 +113,9 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
     }
 
     const numAmount = parseFloat(amountStr);
+    const now = new Date();
+    const localDateStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+
     onSubmit({
       type,
       amount: numAmount,
@@ -120,7 +123,7 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
       toAccountId: type === 'EXPENSE' ? null : toAccountId,
       categoryId: type === 'TRANSFER' ? null : categoryId,
       note: note.trim() || null,
-      transactionDate: new Date().toISOString().split('T')[0],
+      transactionDate: localDateStr,
     });
 
     // Reset drawer form state

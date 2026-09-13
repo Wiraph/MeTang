@@ -35,8 +35,13 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
   const [viewYear, setViewYear] = useState<number>(new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState<number>(new Date().getMonth());
 
-  // Format date to YYYY-MM-DD
-  const formatDateKey = (d: Date) => d.toISOString().split('T')[0];
+  // Format date to YYYY-MM-DD in local time
+  const formatDateKey = (d: Date) => {
+    const y = d.getFullYear();
+    const m = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getDate().toString().padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
 
   // Helper to format Thai date string (e.g., 13 ก.ย. 2569)
   const formatThaiDate = (d: Date) => {

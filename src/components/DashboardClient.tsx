@@ -79,6 +79,13 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
       const accountMap = new Map(updatedAccounts.map((a) => [a.id, a]));
       const categoryMap = new Map(initialCategories.map((c) => [c.id, c]));
 
+      const formatLocalDate = (d: Date = new Date()) => {
+        const y = d.getFullYear();
+        const m = (d.getMonth() + 1).toString().padStart(2, '0');
+        const day = d.getDate().toString().padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      };
+
       const optimisticTx: ExtendedTransaction = {
         id: 'opt-' + Date.now(),
         type,
@@ -87,7 +94,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         toAccountId: toAccountId || null,
         categoryId: categoryId || null,
         note: note || null,
-        transactionDate: new Date().toISOString().split('T')[0],
+        transactionDate: formatLocalDate(new Date()),
         createdAt: new Date(),
         fromAccount: fromAccountId ? accountMap.get(fromAccountId) || null : null,
         toAccount: toAccountId ? accountMap.get(toAccountId) || null : null,
@@ -122,10 +129,17 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
 
   // Group transactions by date
   const groupTransactions = (txs: ExtendedTransaction[]) => {
-    const today = new Date().toISOString().split('T')[0];
+    const formatLocalDate = (d: Date) => {
+      const y = d.getFullYear();
+      const m = (d.getMonth() + 1).toString().padStart(2, '0');
+      const day = d.getDate().toString().padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    const today = formatLocalDate(new Date());
     const yesterdayDate = new Date();
     yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-    const yesterday = yesterdayDate.toISOString().split('T')[0];
+    const yesterday = formatLocalDate(yesterdayDate);
 
     const groups: { [key: string]: ExtendedTransaction[] } = {
       Today: [],

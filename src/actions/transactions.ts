@@ -82,7 +82,9 @@ export async function createTransactionAction(input: TransactionInput) {
     throw new Error('Transfer transaction requires both source and destination accounts.');
   }
 
-  const txDate = transactionDate || new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const defaultLocalDateStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+  const txDate = transactionDate || defaultLocalDateStr;
   const amountDecimal = amount.toFixed(2);
 
   // Execute in ACID transaction
