@@ -22,7 +22,10 @@ export async function getDashboardDataAction(): Promise<{
       categoriesList = await db.select().from(categories);
     }
 
-    const txRecords = await db.select().from(transactions).orderBy(desc(transactions.createdAt)).limit(50);
+    const txRecords = await db
+      .select()
+      .from(transactions)
+      .orderBy(desc(transactions.transactionDate), desc(transactions.createdAt));
 
     const accountMap = new Map(accountsList.map((a) => [a.id, a]));
     const categoryMap = new Map(categoriesList.map((c) => [c.id, c]));
