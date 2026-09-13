@@ -30,7 +30,6 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
   const [toAccountId, setToAccountId] = useState<string>('');
   const [categoryId, setCategoryId] = useState<string>('');
   const [note, setNote] = useState<string>('');
-  const [activeSlot, setActiveSlot] = useState<'from' | 'to'>('from');
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showErrorAlert, setShowErrorAlert] = useState<boolean>(false);
 
@@ -44,7 +43,10 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
       }
     } else if (accounts.length > 0) {
       if (!fromAccountId) setFromAccountId(accounts[0].id);
-      if (!toAccountId && accounts.length > 1) setToAccountId(accounts[1].id);
+      if (!toAccountId && accounts.length > 1) {
+        const altAcc = accounts.find((a) => a.id !== (fromAccountId || accounts[0].id));
+        if (altAcc) setToAccountId(altAcc.id);
+      }
     }
   }, [defaultAccountId, accounts, isOpen]);
 
@@ -53,16 +55,10 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
     if (type === 'TRANSFER' && accounts.length > 1) {
       if (fromAccountId && toAccountId && fromAccountId === toAccountId) {
         const altAccount = accounts.find((a) => a.id !== fromAccountId);
-        if (altAccount) {
-          if (activeSlot === 'from') {
-            setToAccountId(altAccount.id);
-          } else {
-            setFromAccountId(altAccount.id);
-          }
-        }
+        if (altAccount) setToAccountId(altAccount.id);
       }
     }
-  }, [type, fromAccountId, toAccountId, activeSlot, accounts]);
+  }, [type, fromAccountId, toAccountId, accounts]);
 
   // Set default category when type changes
   useEffect(() => {
@@ -78,7 +74,7 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
   useEffect(() => {
     const numAmount = parseFloat(amountStr);
     if (!amountStr || numAmount <= 0) {
-      setValidationError('Please enter an amount greater than ฿0 using the Numpad below');
+      setValidationError('Please enter an amount greater than ฿0 using Numpad');
       return;
     }
 
@@ -134,8 +130,6 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
     onClose();
   };
 
-  const selectedFromAccount = accounts.find((a) => a.id === fromAccountId);
-  const selectedToAccount = accounts.find((a) => a.id === toAccountId);
   const availableCategories = categories.filter((c) => c.type === type);
 
   return (
@@ -185,10 +179,7 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => {
-              setType('TRANSFER');
-              setActiveSlot('from');
-            }}
+            onClick={() => setType('TRANSFER')}
             className={`py-2 px-1 rounded-lg font-black text-xs uppercase tracking-wider transition-all border border-[#121212] ${
               type === 'TRANSFER'
                 ? 'bg-[#3B82F6] text-white shadow-[2px_2px_0px_#121212]'
@@ -200,90 +191,81 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
         </div>
 
         {/* Amount Display */}
-        <AmountDisplay value={amountStr} type={type} />
+        <AmountDisplay
+          value={amountStr}
+          type={type}
+          onClear={() => setAmountStr('0')}
+        />
 
-        {/* TRANSFER Directional Account Selector */}
+        {/* TRANSFER Mode: Separate TRANSFER FROM & TRANSFER TO Grids */}
         {type === 'TRANSFER' ? (
-          <div className="mb-3">
-            <label className="text-xs font-black uppercase text-gray-700 tracking-wider block mb-1.5">
-              Directional Transfer
-            </label>
-            <div className="grid grid-cols-2 gap-2 mb-2">
-              {/* Transfer From Box */}
-              <div
-                onClick={() => setActiveSlot('from')}
-                className={`p-2.5 rounded-xl border-2 border-[#121212] cursor-pointer transition-all ${
-                  activeSlot === 'from'
-                    ? 'bg-blue-100 shadow-[3px_3px_0px_#121212] ring-2 ring-black'
-                    : 'bg-white shadow-[2px_2px_0px_#121212]'
-                }`}
-              >
-                <div className="text-[10px] font-black uppercase text-gray-500">Transfer From</div>
-                <div className="font-bold text-xs truncate text-[#121212] flex items-center gap-1 mt-0.5">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full border border-black"
-                    style={{ backgroundColor: selectedFromAccount?.color || '#000' }}
-                  />
-                  {selectedFromAccount?.name || 'Select Account'}
-                </div>
-              </div>
-
-              {/* Transfer To Box */}
-              <div
-                onClick={() => setActiveSlot('to')}
-                className={`p-2.5 rounded-xl border-2 border-[#121212] cursor-pointer transition-all ${
-                  activeSlot === 'to'
-                    ? 'bg-blue-100 shadow-[3px_3px_0px_#121212] ring-2 ring-black'
-                    : 'bg-white shadow-[2px_2px_0px_#121212]'
-                }`}
-              >
-                <div className="text-[10px] font-black uppercase text-gray-500">Transfer To</div>
-                <div className="font-bold text-xs truncate text-[#121212] flex items-center gap-1 mt-0.5">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full border border-black"
-                    style={{ backgroundColor: selectedToAccount?.color || '#000' }}
-                  />
-                  {selectedToAccount?.name || 'Select Account'}
-                </div>
+          <div className="space-y-3 mb-3">
+            {/* TRANSFER FROM SECTION */}
+            <div className="p-3 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212]">
+              <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-2">
+                TRANSFER FROM
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {accounts.map((acc) => {
+                  const isSelected = fromAccountId === acc.id;
+                  return (
+                    <button
+                      key={acc.id}
+                      type="button"
+                      onClick={() => {
+                        setFromAccountId(acc.id);
+                        if (toAccountId === acc.id) {
+                          const alt = accounts.find((a) => a.id !== acc.id);
+                          if (alt) setToAccountId(alt.id);
+                        }
+                      }}
+                      className={`py-2 px-2 rounded-xl border-2 border-[#121212] text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-[#FF5722] text-white shadow-[2px_2px_0px_#121212]'
+                          : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
+                      }`}
+                    >
+                      <div
+                        className="w-2.5 h-2.5 rounded-full border border-black flex-shrink-0"
+                        style={{ backgroundColor: acc.color }}
+                      />
+                      <span className="truncate">{acc.name}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Account Chips Selection for Active Slot */}
-            <div className="flex flex-wrap gap-1.5 mt-1">
-              {accounts.map((acc) => {
-                const isSelected =
-                  activeSlot === 'from' ? fromAccountId === acc.id : toAccountId === acc.id;
-                const isOtherSlotSelected =
-                  activeSlot === 'from' ? toAccountId === acc.id : fromAccountId === acc.id;
-
-                return (
-                  <button
-                    key={acc.id}
-                    type="button"
-                    disabled={isOtherSlotSelected}
-                    onClick={() => {
-                      if (activeSlot === 'from') {
-                        setFromAccountId(acc.id);
-                      } else {
-                        setToAccountId(acc.id);
-                      }
-                    }}
-                    className={`px-2.5 py-1 rounded-lg border-2 border-[#121212] text-xs font-bold transition-all flex items-center gap-1.5 ${
-                      isSelected
-                        ? 'bg-[#121212] text-white shadow-[2px_2px_0px_#121212]'
-                        : isOtherSlotSelected
-                        ? 'bg-gray-200 text-gray-400 opacity-40 cursor-not-allowed border-gray-300'
-                        : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
-                    }`}
-                  >
-                    <div
-                      className="w-2 h-2 rounded-full border border-black"
-                      style={{ backgroundColor: acc.color }}
-                    />
-                    {acc.name}
-                  </button>
-                );
-              })}
+            {/* TRANSFER TO SECTION (EXCLUDES selected fromAccountId) */}
+            <div className="p-3 bg-white border-2 border-[#121212] rounded-xl shadow-[3px_3px_0px_#121212]">
+              <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-2">
+                TRANSFER TO
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {accounts
+                  .filter((acc) => acc.id !== fromAccountId) // Exclude selected fromAccountId completely!
+                  .map((acc) => {
+                    const isSelected = toAccountId === acc.id;
+                    return (
+                      <button
+                        key={acc.id}
+                        type="button"
+                        onClick={() => setToAccountId(acc.id)}
+                        className={`py-2 px-2 rounded-xl border-2 border-[#121212] text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                          isSelected
+                            ? 'bg-[#FF5722] text-white shadow-[2px_2px_0px_#121212]'
+                            : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
+                        }`}
+                      >
+                        <div
+                          className="w-2.5 h-2.5 rounded-full border border-black flex-shrink-0"
+                          style={{ backgroundColor: acc.color }}
+                        />
+                        <span className="truncate">{acc.name}</span>
+                      </button>
+                    );
+                  })}
+              </div>
             </div>
           </div>
         ) : (

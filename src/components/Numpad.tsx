@@ -1,5 +1,5 @@
 import React from 'react';
-import { Delete, RotateCcw } from 'lucide-react';
+import { Delete } from 'lucide-react';
 
 interface NumpadProps {
   value: string;
@@ -24,17 +24,17 @@ export const Numpad: React.FC<NumpadProps> = ({ value, onChange }) => {
 
     if (key === '.') {
       if (value.includes('.')) return;
-      onChange(value + '.');
+      onChange(value === '0' ? '0.' : value + '.');
       return;
     }
 
-    // Limit decimal precision to 2 decimal places
+    // Limit decimal precision to max 2 decimal places
     if (value.includes('.')) {
       const [, decimalPart] = value.split('.');
       if (decimalPart && decimalPart.length >= 2) return;
     }
 
-    // Prevent excessive length
+    // Prevent excessive digit length
     if (value.replace('.', '').length >= 9) return;
 
     if (value === '0') {
@@ -48,13 +48,14 @@ export const Numpad: React.FC<NumpadProps> = ({ value, onChange }) => {
     '1', '2', '3',
     '4', '5', '6',
     '7', '8', '9',
-    'C', '0', 'DEL'
+    '.', '0', 'DEL'
   ];
 
   return (
     <div className="grid grid-cols-3 gap-2.5 w-full my-2">
       {keys.map((key) => {
-        const isActionKey = key === 'C' || key === 'DEL';
+        const isActionKey = key === 'DEL';
+        const isDecimalKey = key === '.';
         return (
           <button
             key={key}
@@ -63,13 +64,13 @@ export const Numpad: React.FC<NumpadProps> = ({ value, onChange }) => {
             className={`h-12 border-2 border-[#121212] rounded-xl font-tabular font-black text-xl flex items-center justify-center transition-all select-none ${
               isActionKey
                 ? 'bg-[#FFD02C] text-black shadow-[2px_2px_0px_#121212] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
+                : isDecimalKey
+                ? 'bg-[#FAF9F6] text-black shadow-[3px_3px_0px_#121212] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#121212]'
                 : 'bg-white text-black shadow-[3px_3px_0px_#121212] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[1px_1px_0px_#121212]'
             }`}
           >
             {key === 'DEL' ? (
               <Delete className="w-5 h-5 text-black" />
-            ) : key === 'C' ? (
-              <RotateCcw className="w-5 h-5 text-black" />
             ) : (
               key
             )}
