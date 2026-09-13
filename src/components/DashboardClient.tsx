@@ -163,15 +163,15 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
 
       {/* Main Content Area */}
       <main className="max-w-xl mx-auto px-4 mt-4 space-y-6">
-        {/* Account Balances Scroll */}
+        {/* Account Balances Grid (No horizontal scrolling) */}
         <section>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-2.5">
             <h2 className="text-sm font-black uppercase tracking-wider text-black">
               Wallets & Accounts ({state.accounts.length})
             </h2>
-            <span className="text-[11px] font-bold text-gray-500">Scroll →</span>
+            <span className="text-[11px] font-bold text-gray-500">All View</span>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2 pt-1 no-scrollbar -mx-4 px-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {state.accounts.map((acc) => (
               <AccountCard key={acc.id} account={acc} />
             ))}
