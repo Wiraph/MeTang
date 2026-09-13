@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Account } from '@/types';
 import { updateAccountBalanceAction } from '@/actions/transactions';
 import { X, Check, Wallet } from 'lucide-react';
@@ -16,16 +16,34 @@ export const EditBalancesModal: React.FC<EditBalancesModalProps> = ({
   onClose,
   accounts,
 }) => {
-  const [balances, setBalances] = useState<{ [id: string]: string }>(() => {
-    const initial: { [id: string]: string } = {};
-    accounts.forEach((a) => {
-      initial[a.id] = a.currentBalance || '0.00';
-    });
-    return initial;
-  });
+  const [balances, setBalances] = useState<{ [id: string]: string }>({});
   const [isSaving, setIsSaving] = useState(false);
 
+  useEffect(() => {
+    if (isOpen) {
+      const initial: { [id: string]: string } = {};
+      accounts.forEach((a) => {
+        const val = parseFloat(a.currentBalance || '0');
+        initial[a.id] = val.toFixed(2);
+      });
+      setBalances(initial);
+    }
+  }, [accounts, isOpen]);
+
   if (!isOpen) return null;
+
+  const handleBlur = (accId: string) => {
+    const rawVal = balances[accId];
+    if (rawVal !== undefined && rawVal !== '') {
+      const num = parseFloat(rawVal);
+      if (!isNaN(num)) {
+        setBalances((prev) => ({
+          ...prev,
+          [accId]: num.toFixed(2),
+        }));
+      }
+    }
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -66,7 +84,7 @@ export const EditBalancesModal: React.FC<EditBalancesModalProps> = ({
         </div>
 
         <p className="text-xs font-bold text-gray-500 mb-4">
-          Enter your actual starting money for each wallet below. It will update live in your Supabase database.
+          Enter your actual starting money for each wallet below. Values are automatically formatted with .00 precision.
         </p>
 
         {/* Input fields for 7 wallets */}
@@ -91,13 +109,14 @@ export const EditBalancesModal: React.FC<EditBalancesModalProps> = ({
                 <input
                   type="number"
                   step="0.01"
-                  value={balances[acc.id] ?? ''}
+                  value={balances[acc.id] ?? '0.00'}
                   onChange={(e) =>
                     setBalances({
                       ...balances,
                       [acc.id]: e.target.value,
                     })
                   }
+                  onBlur={() => handleBlur(acc.id)}
                   className="w-full pl-7 pr-2 py-1.5 bg-[#FAF9F6] border-2 border-[#121212] rounded-lg text-xs font-tabular font-black text-[#121212] shadow-[1px_1px_0px_#121212] focus:outline-none focus:ring-2 focus:ring-black"
                 />
               </div>
@@ -113,7 +132,7 @@ export const EditBalancesModal: React.FC<EditBalancesModalProps> = ({
           className="w-full py-3 rounded-xl border-2 border-[#121212] bg-[#FFD02C] text-[#121212] font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-[4px_4px_0px_#121212] active:translate-x-[2px] active:translate-y-[2px] transition-all"
         >
           <Check className="w-5 h-5" />
-          {isSaving ? 'Saving to Supabase...' : 'Save Real Balances'}
+          {isSaving ? 'Saving to Supabase...' : 'Save Real Balances (.00)'}
         </button>
       </div>
     </div>
