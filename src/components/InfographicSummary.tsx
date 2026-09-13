@@ -207,50 +207,56 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
   const renderDonutChart = () => {
     if (categoryShare.items.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center py-12 text-gray-400 font-bold text-xs">
-          <PieChart className="w-12 h-12 mb-2 stroke-1 opacity-50 text-gray-400" />
+        <div className="flex flex-col items-center justify-center py-16 text-gray-400 font-bold text-sm w-full">
+          <PieChart className="w-16 h-16 mb-3 stroke-1 opacity-40 text-gray-400" />
           <span>ไม่มีข้อมูล{chartType === 'EXPENSE' ? 'ค่าใช้จ่าย' : 'รายรับ'}ช่วงนี้</span>
         </div>
       );
     }
 
     let cumulativePercent = 0;
-    const strokeWidth = 22;
-    const radius = 58;
+    const strokeWidth = 26;
+    const radius = 72;
     const circumference = 2 * Math.PI * radius;
 
     return (
-      <div className="relative flex flex-col items-center justify-center my-2">
-        <svg viewBox="0 0 160 160" className="w-52 h-52 sm:w-56 sm:h-56 -rotate-90 transform">
-          {categoryShare.items.map((item, idx) => {
-            const strokeDasharray = `${(item.percentage * circumference) / 100} ${circumference}`;
-            const strokeDashoffset = -((cumulativePercent * circumference) / 100);
-            cumulativePercent += item.percentage;
+      <div className="relative flex items-center justify-center w-full py-2">
+        <div className="relative w-56 h-56 sm:w-64 sm:h-64 md:w-72 md:h-72 aspect-square flex items-center justify-center">
+          <svg viewBox="0 0 200 200" className="w-full h-full -rotate-90 transform drop-shadow-xs">
+            {categoryShare.items.map((item, idx) => {
+              const strokeDasharray = `${(item.percentage * circumference) / 100} ${circumference}`;
+              const strokeDashoffset = -((cumulativePercent * circumference) / 100);
+              cumulativePercent += item.percentage;
 
-            return (
-              <circle
-                key={idx}
-                cx="80"
-                cy="80"
-                r={radius}
-                fill="transparent"
-                stroke={item.color}
-                strokeWidth={strokeWidth}
-                strokeDasharray={strokeDasharray}
-                strokeDashoffset={strokeDashoffset}
-                className="transition-all duration-300"
-              />
-            );
-          })}
-        </svg>
+              return (
+                <circle
+                  key={idx}
+                  cx="100"
+                  cy="100"
+                  r={radius}
+                  fill="transparent"
+                  stroke={item.color}
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={strokeDasharray}
+                  strokeDashoffset={strokeDashoffset}
+                  className="transition-all duration-300"
+                />
+              );
+            })}
+          </svg>
 
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4">
-          <span className="text-[10px] font-black uppercase tracking-wider text-gray-500">
-            {chartType === 'EXPENSE' ? 'รวมรายจ่าย' : 'รวมรายรับ'}
-          </span>
-          <span className={`font-tabular text-base sm:text-lg font-black ${chartType === 'EXPENSE' ? 'text-[#FF5722]' : 'text-[#10B981]'}`}>
-            ฿{categoryShare.totalAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
-          </span>
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center px-4">
+            <span className="text-xs font-black uppercase tracking-wider text-gray-500 mb-1">
+              {chartType === 'EXPENSE' ? 'รวมรายจ่าย' : 'รวมรายรับ'}
+            </span>
+            <span
+              className={`font-tabular text-lg sm:text-xl md:text-2xl font-black tracking-tight ${
+                chartType === 'EXPENSE' ? 'text-[#FF5722]' : 'text-[#10B981]'
+              }`}
+            >
+              ฿{categoryShare.totalAmount.toLocaleString('th-TH', { minimumFractionDigits: 2 })}
+            </span>
+          </div>
         </div>
       </div>
     );
