@@ -28,11 +28,13 @@ export const Numpad: React.FC<NumpadProps> = ({ value, onChange }) => {
       return;
     }
 
+    // Limit decimal precision to 2 decimal places
     if (value.includes('.')) {
       const [, decimalPart] = value.split('.');
       if (decimalPart && decimalPart.length >= 2) return;
     }
 
+    // Prevent excessive length
     if (value.replace('.', '').length >= 9) return;
 
     if (value === '0') {
@@ -58,16 +60,16 @@ export const Numpad: React.FC<NumpadProps> = ({ value, onChange }) => {
             key={key}
             type="button"
             onClick={() => handleKeyPress(key)}
-            className={`h-12 rounded-2xl font-bold text-lg flex items-center justify-center transition-all select-none active:scale-95 ${
+            className={`h-12 rounded-2xl font-bold text-lg flex items-center justify-center transition-all select-none border ${
               isActionKey
-                ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-                : 'bg-slate-100 text-slate-900 hover:bg-slate-200'
+                ? 'bg-stone-100 border-stone-200/80 text-stone-600 hover:bg-stone-200/80 active:scale-[0.96]'
+                : 'bg-white border-stone-200/80 text-stone-900 hover:bg-stone-50 active:scale-[0.96] shadow-[0_1px_2px_0_rgba(0,0,0,0.03)]'
             }`}
           >
             {key === 'DEL' ? (
-              <Delete className="w-5 h-5 text-slate-600" />
+              <Delete className="w-5 h-5 text-stone-500" />
             ) : key === 'C' ? (
-              <RotateCcw className="w-5 h-5 text-slate-600" />
+              <RotateCcw className="w-5 h-5 text-stone-500" />
             ) : (
               key
             )}

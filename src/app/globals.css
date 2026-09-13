@@ -2,42 +2,44 @@
 
 @layer base {
   :root {
-    --background: #F8F9FA;
-    --foreground: #0F172A;
+    --background: #FAFAF7;
+    --foreground: #1C1917;
+    --card: #FFFFFF;
+    --card-border: #E7E5E4;
   }
 
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     -webkit-tap-highlight-color: transparent;
     user-select: none;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
-/* Minimalist Utilities */
+/* Minimal Utilities */
 .minimal-card {
   background-color: #ffffff;
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+  border: 1px solid #E7E5E4;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .minimal-card:hover {
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  border-color: #D6D3D1;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
 }
 
 .minimal-btn {
-  background-color: #ffffff;
-  border: 1px solid #E2E8F0;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.15s ease, opacity 0.15s ease, background-color 0.15s ease;
 }
 
 .minimal-btn:active {
   transform: scale(0.97);
 }
 
-/* Hide scrollbar for horizontal scroll */
+/* Hide scrollbar */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

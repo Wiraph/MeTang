@@ -6,7 +6,7 @@ import { createTransactionAction } from '@/actions/transactions';
 import { AccountCard } from './AccountCard';
 import { QuickEntryDrawer } from './QuickEntryDrawer';
 import { CategoryIcon } from './CategoryIcon';
-import { Plus, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Wallet } from 'lucide-react';
+import { Plus, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Wallet, Sparkles } from 'lucide-react';
 
 interface DashboardClientProps {
   initialAccounts: Account[];
@@ -27,11 +27,13 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [, startTransition] = useTransition();
 
+  // Optimistic state sync for zero perceived latency (0ms UI update)
   const [state, setOptimisticState] = useOptimistic<DashboardState, TransactionInput>(
     { accounts: initialAccounts, transactions: initialTransactions },
     (currentState, newTxInput) => {
       const { type, amount, fromAccountId, toAccountId, categoryId, note } = newTxInput;
 
+      // 1. Update Accounts balances optimistically
       const updatedAccounts = currentState.accounts.map((acc) => {
         let balance = parseFloat(acc.currentBalance || '0');
         if (type === 'EXPENSE' && acc.id === fromAccountId) {
@@ -48,6 +50,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         };
       });
 
+      // 2. Prepend optimistic transaction
       const accountMap = new Map(updatedAccounts.map((a) => [a.id, a]));
       const categoryMap = new Map(initialCategories.map((c) => [c.id, c]));
 
@@ -73,6 +76,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
     }
   );
 
+  // Calculate Net Worth total
   const netWorth = state.accounts.reduce(
     (sum, acc) => sum + parseFloat(acc.currentBalance || '0'),
     0
@@ -83,6 +87,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
     minimumFractionDigits: 2,
   }).format(netWorth);
 
+  // Group transactions by date
   const groupTransactions = (txs: ExtendedTransaction[]) => {
     const today = new Date().toISOString().split('T')[0];
     const yesterdayDate = new Date();
@@ -123,35 +128,36 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-slate-900 pb-28">
+    <div className="min-h-screen bg-[#FAFAF7] text-stone-900 pb-28">
       {/* Top Header & Net Worth Container */}
-      <header className="max-w-xl mx-auto px-4 pt-6 pb-2">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center font-extrabold text-lg shadow-xs">
+      <header className="max-w-xl mx-auto px-4 pt-8 pb-3">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-stone-900 text-white flex items-center justify-center font-bold text-lg shadow-sm">
               M
             </div>
             <div>
-              <h1 className="text-lg font-bold text-slate-900 tracking-tight">MeTang</h1>
-              <p className="text-[11px] font-medium text-slate-500">Personal Finance</p>
+              <h1 className="text-lg font-bold tracking-tight text-stone-900">MeTang</h1>
+              <p className="text-xs font-medium text-stone-400">Personal Wealth & Wallets</p>
             </div>
           </div>
-          <span className="px-3 py-1 rounded-full bg-slate-200/70 text-slate-700 text-[11px] font-semibold tracking-wide">
-            PWA Standalone
+          <span className="px-3 py-1 rounded-full border border-stone-200 bg-white text-stone-600 text-xs font-medium shadow-2xs flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>Personal</span>
           </span>
         </div>
 
-        {/* Minimal Net Worth Card */}
-        <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white shadow-xl shadow-slate-900/10 relative overflow-hidden">
-          <div className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">
+        {/* Total Net Worth Card */}
+        <div className="p-6 rounded-3xl bg-gradient-to-br from-stone-900 via-stone-900 to-stone-800 text-white shadow-xl shadow-stone-900/10 border border-stone-800 relative overflow-hidden">
+          <div className="text-xs font-medium text-stone-400 uppercase tracking-wider mb-1">
             Total Net Worth
           </div>
-          <div className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+          <div className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
             {formattedNetWorth}
           </div>
-          <div className="mt-3 flex items-center gap-2 text-xs text-slate-300 font-medium">
-            <Wallet className="w-4 h-4 text-emerald-400" />
-            <span>Across {state.accounts.length} Accounts</span>
+          <div className="mt-3 flex items-center gap-2 text-xs font-medium text-stone-300">
+            <Wallet className="w-4 h-4 text-stone-400" />
+            <span>Across {state.accounts.length} Active Accounts</span>
           </div>
         </div>
       </header>
@@ -161,10 +167,9 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         {/* Account Balances Grid */}
         <section>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-stone-400">
               Wallets & Accounts ({state.accounts.length})
             </h2>
-            <span className="text-[11px] font-medium text-slate-400">All View</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
             {state.accounts.map((acc) => (
@@ -173,23 +178,23 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
           </div>
         </section>
 
-        {/* Minimal Recent Activity Feed */}
-        <section className="bg-white border border-slate-200/80 rounded-3xl p-5 shadow-xs">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+        {/* Recent Activity List */}
+        <section className="bg-white border border-stone-200/80 rounded-3xl p-5 shadow-[0_2px_10px_-3px_rgba(0,0,0,0.03)]">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-stone-400 mb-4">
             Recent Activity
           </h2>
 
           {state.transactions.length === 0 ? (
-            <div className="py-8 text-center text-slate-400 font-medium text-xs">
-              No transactions recorded yet. Tap <span className="text-slate-900 font-bold">+</span> below!
+            <div className="py-10 text-center text-stone-400 font-medium text-xs">
+              No transactions recorded yet. Tap <span className="text-stone-900 font-bold">+</span> below!
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-5">
               {Object.entries(groupedTxs).map(([groupTitle, txList]) => {
                 if (txList.length === 0) return null;
                 return (
-                  <div key={groupTitle} className="space-y-2">
-                    <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-100 pb-1">
+                  <div key={groupTitle} className="space-y-2.5">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-stone-400 border-b border-stone-100 pb-1">
                       {groupTitle}
                     </div>
                     <div className="space-y-2">
@@ -204,16 +209,16 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
                         return (
                           <div
                             key={tx.id}
-                            className="flex items-center justify-between p-3 rounded-2xl bg-slate-50/70 hover:bg-slate-100/80 border border-slate-100 transition-colors"
+                            className="flex items-center justify-between p-3 rounded-2xl bg-stone-50/70 border border-stone-200/60 transition-colors hover:bg-stone-50"
                           >
                             <div className="flex items-center gap-3 min-w-0">
                               <div
-                                className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-medium ${
+                                className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
                                   tx.type === 'EXPENSE'
-                                    ? 'bg-rose-500'
+                                    ? 'bg-rose-100/80 text-rose-600'
                                     : tx.type === 'INCOME'
-                                    ? 'bg-emerald-500'
-                                    : 'bg-indigo-600'
+                                    ? 'bg-emerald-100/80 text-emerald-600'
+                                    : 'bg-indigo-100/80 text-indigo-600'
                                 }`}
                               >
                                 {tx.type === 'TRANSFER' ? (
@@ -228,13 +233,13 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
                               </div>
 
                               <div className="min-w-0">
-                                <div className="font-semibold text-xs text-slate-900 truncate">
+                                <div className="font-semibold text-xs text-stone-900 truncate">
                                   {tx.note ||
                                     (tx.type === 'TRANSFER'
                                       ? 'Account Transfer'
                                       : tx.category?.name || tx.type)}
                                 </div>
-                                <div className="text-[10px] text-slate-500 font-medium truncate flex items-center gap-1">
+                                <div className="text-[11px] text-stone-400 font-medium truncate">
                                   {tx.type === 'TRANSFER' ? (
                                     <span>
                                       {tx.fromAccount?.name || 'Wallet'} → {tx.toAccount?.name || 'Wallet'}
@@ -261,7 +266,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
                                 {tx.type === 'EXPENSE' ? '-' : tx.type === 'INCOME' ? '+' : ''}
                                 {formattedAmt}
                               </div>
-                              <div className="text-[9px] font-semibold text-slate-400 uppercase tracking-wide">
+                              <div className="text-[9px] font-medium text-stone-400 uppercase">
                                 {tx.type}
                               </div>
                             </div>
@@ -277,19 +282,19 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
         </section>
       </main>
 
-      {/* Floating Action Button (FAB) */}
+      {/* Floating Action Button (FAB) Centered at Thumb Zone */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
         <button
           type="button"
           onClick={() => setIsDrawerOpen(true)}
-          className="bg-slate-900 text-white px-6 py-3.5 rounded-full font-bold text-sm tracking-wide flex items-center gap-2.5 shadow-xl shadow-slate-900/25 hover:bg-slate-800 active:scale-95 transition-all"
+          className="bg-stone-900 text-white px-6 py-3.5 rounded-full font-semibold text-xs uppercase tracking-wider flex items-center gap-2 shadow-xl shadow-stone-900/20 hover:bg-stone-800 active:scale-95 transition-all"
         >
-          <Plus className="w-4 h-4 stroke-[3]" />
+          <Plus className="w-4 h-4 text-stone-300 stroke-[2.5]" />
           <span>Quick Entry</span>
         </button>
       </div>
 
-      {/* Quick Entry Drawer */}
+      {/* Quick Entry Bottom Sheet Drawer */}
       <QuickEntryDrawer
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}

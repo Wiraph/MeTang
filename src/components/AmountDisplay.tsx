@@ -21,9 +21,9 @@ export const AmountDisplay: React.FC<AmountDisplayProps> = ({ value, type }) => 
   const displayValue = value ? value : '0';
 
   return (
-    <div className="w-full bg-slate-50 border border-slate-200/80 rounded-2xl p-4 text-center my-3 transition-colors">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block mb-1">
-        Entered Amount
+    <div className="w-full bg-stone-50/80 border border-stone-200/80 rounded-2xl p-4 text-center my-3 transition-colors">
+      <span className="text-[11px] font-semibold uppercase text-stone-400 tracking-wider block mb-1">
+        Amount
       </span>
       <div className="flex items-center justify-center gap-1">
         <span className={`text-2xl font-bold ${getTypeColor()}`}>฿</span>
