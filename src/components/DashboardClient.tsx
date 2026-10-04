@@ -9,6 +9,7 @@ import { EditBalancesModal } from './EditBalancesModal';
 import { CategoryIcon } from './CategoryIcon';
 import { InfographicSummary } from './InfographicSummary';
 import { PinLockScreen } from './PinLockScreen';
+import { BankLogo } from './BankLogo';
 import { Plus, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, Wallet, LayoutGrid, BarChart2, X, Settings, Lock } from 'lucide-react';
 
 interface DashboardClientProps {

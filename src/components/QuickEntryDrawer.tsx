@@ -5,6 +5,7 @@ import { Account, Category, TransactionType, TransactionInput } from '@/types';
 import { Numpad } from './Numpad';
 import { AmountDisplay } from './AmountDisplay';
 import { CategoryIcon } from './CategoryIcon';
+import { BankLogo } from './BankLogo';
 import { X, AlertCircle, Check } from 'lucide-react';
 
 interface QuickEntryDrawerProps {
@@ -72,29 +73,29 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
 
   // Validate inputs
   useEffect(() => {
-    const numAmount = parseFloat(amountStr);
-    if (!amountStr || numAmount <= 0) {
-      setValidationError('Please enter an amount greater than ฿0 using Numpad');
+    const numAmount = parseFloat(amountStr) || 0;
+    if (numAmount < 0) {
+      setValidationError('จำนวนเงินต้องไม่ติดลบ');
       return;
     }
 
     if (type === 'EXPENSE' && !fromAccountId) {
-      setValidationError('Please select a payment account');
+      setValidationError('กรุณาเลือกบัญชีที่ใช้จ่าย');
       return;
     }
 
     if (type === 'INCOME' && !toAccountId) {
-      setValidationError('Please select a destination account');
+      setValidationError('กรุณาเลือกบัญชีปลายทาง');
       return;
     }
 
     if (type === 'TRANSFER') {
       if (!fromAccountId || !toAccountId) {
-        setValidationError('Please select both source and destination accounts');
+        setValidationError('กรุณาเลือกบัญชีต้นทางและปลายทาง');
         return;
       }
       if (fromAccountId === toAccountId) {
-        setValidationError('Source and destination accounts must be different');
+        setValidationError('บัญชีต้นทางและปลายทางต้องไม่ซ้ำกัน');
         return;
       }
     }
@@ -112,7 +113,7 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
       return;
     }
 
-    const numAmount = parseFloat(amountStr);
+    const numAmount = parseFloat(amountStr) || 0;
     const now = new Date();
     const localDateStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
 
@@ -236,10 +237,7 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
                               : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
                           }`}
                         >
-                          <div
-                            className="w-2.5 h-2.5 rounded-full border border-black flex-shrink-0"
-                            style={{ backgroundColor: acc.color }}
-                          />
+                          <BankLogo name={acc.name} size="sm" />
                           <span className="truncate">{acc.name}</span>
                         </button>
                       );
@@ -268,10 +266,7 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
                                 : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
                             }`}
                           >
-                            <div
-                              className="w-2.5 h-2.5 rounded-full border border-black flex-shrink-0"
-                              style={{ backgroundColor: acc.color }}
-                            />
+                            <BankLogo name={acc.name} size="sm" />
                             <span className="truncate">{acc.name}</span>
                           </button>
                         );
@@ -304,10 +299,7 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
                               : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
                           }`}
                         >
-                          <div
-                            className="w-2.5 h-2.5 rounded-full border border-black flex-shrink-0"
-                            style={{ backgroundColor: acc.color }}
-                          />
+                          <BankLogo name={acc.name} size="sm" />
                           <span className="truncate">{acc.name}</span>
                         </button>
                       );

@@ -9,9 +9,10 @@ export async function seedDatabase() {
     { name: 'MAKE', type: 'BANK', currentBalance: '15000.00', color: '#FF9100' },
     { name: 'Dime', type: 'INVESTMENT', currentBalance: '25000.00', color: '#06B6D4' },
     { name: 'MyMo', type: 'BANK', currentBalance: '8500.00', color: '#EC4899' },
-    { name: 'Krungthai', type: 'BANK', currentBalance: '0284C7' },
+    { name: 'Krungthai', type: 'BANK', currentBalance: '0.00', color: '#0284C7' },
     { name: 'KBank', type: 'BANK', currentBalance: '32000.00', color: '#16A34A' },
     { name: 'TrueMoney', type: 'E_WALLET', currentBalance: '3400.00', color: '#EA580C' },
+    { name: 'เป๋าตัง', type: 'E_WALLET', currentBalance: '0.00', color: '#0085FF' },
     { name: 'Cash', type: 'CASH', currentBalance: '2100.00', color: '#64748B' },
   ];
 

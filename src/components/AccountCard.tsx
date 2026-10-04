@@ -1,5 +1,6 @@
 import React from 'react';
 import { Account } from '@/types';
+import { BankLogo } from './BankLogo';
 import { Building2, Smartphone, DollarSign, TrendingUp } from 'lucide-react';
 
 interface AccountCardProps {
@@ -41,10 +42,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({ account, onClick, isSe
     >
       <div className="flex items-center justify-between gap-1 mb-2">
         <div className="flex items-center gap-1.5 min-w-0 flex-1">
-          <div
-            className="w-2.5 h-2.5 rounded-full border border-black flex-shrink-0"
-            style={{ backgroundColor: account.color || '#000' }}
-          />
+          <BankLogo name={account.name} size="sm" />
           <span className="font-extrabold text-xs truncate text-black tracking-tight">{account.name}</span>
         </div>
         <span className="p-1 rounded bg-[#F4F3EF] border border-black text-black text-[10px] flex-shrink-0">

@@ -65,8 +65,8 @@ export async function updateAccountBalanceAction(accountId: string, newBalance: 
 export async function createTransactionAction(input: TransactionInput) {
   const { type, amount, fromAccountId, toAccountId, categoryId, note, transactionDate } = input;
 
-  if (!amount || amount <= 0) {
-    throw new Error('Amount must be greater than zero.');
+  if (amount === undefined || amount === null || amount < 0) {
+    throw new Error('Amount cannot be negative.');
   }
 
   if (type === 'TRANSFER' && fromAccountId === toAccountId) {

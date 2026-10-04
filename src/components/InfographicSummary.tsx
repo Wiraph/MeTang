@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Account, Category, ExtendedTransaction } from '@/types';
+import { BankLogo } from './BankLogo';
 import { RefreshCw, PieChart, Wallet, ArrowUpDown, Calendar as CalendarIcon, ChevronLeft, ChevronRight, X, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
 interface InfographicSummaryProps {
@@ -853,10 +854,7 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
                     className="flex items-center justify-between py-1.5 border-b border-gray-100 last:border-0"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <div
-                        className="w-2.5 h-2.5 rounded-full border border-[#121212] flex-shrink-0"
-                        style={{ backgroundColor: acc.color }}
-                      />
+                      <BankLogo name={acc.name} size="sm" />
                       <span className="font-bold text-xs uppercase tracking-tight text-[#121212] truncate">
                         {acc.name}
                       </span>
@@ -936,8 +934,9 @@ export const InfographicSummary: React.FC<InfographicSummaryProps> = ({
                           <div className="font-extrabold text-xs text-[#121212] truncate">
                             {tx.category?.name || tx.note || 'อื่นๆ'}
                           </div>
-                          <div className="text-[10px] font-bold text-gray-500 truncate">
-                            {tx.fromAccount?.name || tx.toAccount?.name || 'Wallet'}
+                          <div className="text-[10px] font-bold text-gray-500 truncate flex items-center gap-1 mt-0.5">
+                            <BankLogo name={tx.fromAccount?.name || tx.toAccount?.name || ''} size="xs" />
+                            <span>{tx.fromAccount?.name || tx.toAccount?.name || 'Wallet'}</span>
                           </div>
                         </div>
                       </div>

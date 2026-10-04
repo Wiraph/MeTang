@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Account } from '@/types';
 import { updateAccountBalanceAction } from '@/actions/transactions';
+import { BankLogo } from './BankLogo';
 import { X, Check, Wallet } from 'lucide-react';
 
 interface EditBalancesModalProps {
@@ -95,10 +96,7 @@ export const EditBalancesModal: React.FC<EditBalancesModalProps> = ({
               className="flex items-center justify-between gap-3 p-2.5 rounded-xl border-2 border-[#121212] bg-white shadow-[2px_2px_0px_#121212]"
             >
               <div className="flex items-center gap-2 min-w-0 flex-1">
-                <div
-                  className="w-3 h-3 rounded-full border border-black flex-shrink-0"
-                  style={{ backgroundColor: acc.color }}
-                />
+                <BankLogo name={acc.name} size="sm" />
                 <span className="font-extrabold text-xs text-[#121212] truncate">{acc.name}</span>
               </div>
 
