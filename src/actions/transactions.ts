@@ -4,6 +4,7 @@ import { db } from '@/db';
 import { accounts, categories, transactions } from '@/db/schema';
 import { TransactionInput, Account, Category, ExtendedTransaction } from '@/types';
 import { seedDatabase } from '@/db/seed';
+import { sortAccounts } from '@/lib/accountUtils';
 import { eq, desc, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -21,6 +22,8 @@ export async function getDashboardDataAction(): Promise<{
       accountsList = await db.select().from(accounts);
       categoriesList = await db.select().from(categories);
     }
+
+    accountsList = sortAccounts(accountsList);
 
     const txRecords = await db
       .select()

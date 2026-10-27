@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Account, Category, TransactionType, TransactionInput } from '@/types';
+import { sortAccounts } from '@/lib/accountUtils';
 import { Numpad } from './Numpad';
 import { AmountDisplay } from './AmountDisplay';
 import { CategoryIcon } from './CategoryIcon';
@@ -34,32 +35,35 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showErrorAlert, setShowErrorAlert] = useState<boolean>(false);
 
+  // Lock accounts order permanently: MyMo -> Krungthai -> KBank -> MAKE -> Dime -> TrueMoney -> เป๋าตัง -> Cash
+  const sortedAccounts = useMemo(() => sortAccounts(accounts), [accounts]);
+
   // Set default initial account selections when accounts load or defaultAccountId changes
   useEffect(() => {
-    if (defaultAccountId && accounts.some((a) => a.id === defaultAccountId)) {
+    if (defaultAccountId && sortedAccounts.some((a) => a.id === defaultAccountId)) {
       setFromAccountId(defaultAccountId);
-      if (accounts.length > 1) {
-        const otherAcc = accounts.find((a) => a.id !== defaultAccountId);
+      if (sortedAccounts.length > 1) {
+        const otherAcc = sortedAccounts.find((a) => a.id !== defaultAccountId);
         if (otherAcc) setToAccountId(otherAcc.id);
       }
-    } else if (accounts.length > 0) {
-      if (!fromAccountId) setFromAccountId(accounts[0].id);
-      if (!toAccountId && accounts.length > 1) {
-        const altAcc = accounts.find((a) => a.id !== (fromAccountId || accounts[0].id));
+    } else if (sortedAccounts.length > 0) {
+      if (!fromAccountId) setFromAccountId(sortedAccounts[0].id);
+      if (!toAccountId && sortedAccounts.length > 1) {
+        const altAcc = sortedAccounts.find((a) => a.id !== (fromAccountId || sortedAccounts[0].id));
         if (altAcc) setToAccountId(altAcc.id);
       }
     }
-  }, [defaultAccountId, accounts, isOpen]);
+  }, [defaultAccountId, sortedAccounts, isOpen]);
 
   // Ensure From and To accounts are never the same bank when in TRANSFER mode
   useEffect(() => {
-    if (type === 'TRANSFER' && accounts.length > 1) {
+    if (type === 'TRANSFER' && sortedAccounts.length > 1) {
       if (fromAccountId && toAccountId && fromAccountId === toAccountId) {
-        const altAccount = accounts.find((a) => a.id !== fromAccountId);
+        const altAccount = sortedAccounts.find((a) => a.id !== fromAccountId);
         if (altAccount) setToAccountId(altAccount.id);
       }
     }
-  }, [type, fromAccountId, toAccountId, accounts]);
+  }, [type, fromAccountId, toAccountId, sortedAccounts]);
 
   // Set default category when type changes
   useEffect(() => {
@@ -217,28 +221,28 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
                   <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-2">
                     TRANSFER FROM
                   </label>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 gap-2">
-                    {accounts.map((acc) => {
+                  <div className="grid grid-cols-4 sm:grid-cols-4 gap-2.5">
+                    {sortedAccounts.map((acc) => {
                       const isSelected = fromAccountId === acc.id;
                       return (
                         <button
                           key={acc.id}
                           type="button"
+                          title={acc.name}
                           onClick={() => {
                             setFromAccountId(acc.id);
                             if (toAccountId === acc.id) {
-                              const alt = accounts.find((a) => a.id !== acc.id);
+                              const alt = sortedAccounts.find((a) => a.id !== acc.id);
                               if (alt) setToAccountId(alt.id);
                             }
                           }}
-                          className={`py-2 px-2 rounded-xl border-2 border-[#121212] text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                          className={`h-14 sm:h-16 rounded-2xl border-2 border-[#121212] transition-all flex items-center justify-center p-1.5 active:translate-x-[1px] active:translate-y-[1px] ${
                             isSelected
-                              ? 'bg-[#3B82F6] text-white shadow-[2px_2px_0px_#121212]'
-                              : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
+                              ? 'bg-[#3B82F6] shadow-[3px_3px_0px_#121212] ring-2 ring-blue-400 scale-[1.03]'
+                              : 'bg-[#FAF9F6] hover:bg-slate-100 shadow-[2px_2px_0px_#121212]'
                           }`}
                         >
-                          <BankLogo name={acc.name} size="sm" />
-                          <span className="truncate">{acc.name}</span>
+                          <BankLogo name={acc.name} size="xl" className="shadow-xs" />
                         </button>
                       );
                     })}
@@ -250,27 +254,29 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
                   <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-2">
                     TRANSFER TO
                   </label>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 gap-2">
-                    {accounts
-                      .filter((acc) => acc.id !== fromAccountId)
-                      .map((acc) => {
-                        const isSelected = toAccountId === acc.id;
-                        return (
-                          <button
-                            key={acc.id}
-                            type="button"
-                            onClick={() => setToAccountId(acc.id)}
-                            className={`py-2 px-2 rounded-xl border-2 border-[#121212] text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
-                              isSelected
-                                ? 'bg-[#3B82F6] text-white shadow-[2px_2px_0px_#121212]'
-                                : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
-                            }`}
-                          >
-                            <BankLogo name={acc.name} size="sm" />
-                            <span className="truncate">{acc.name}</span>
-                          </button>
-                        );
-                      })}
+                  <div className="grid grid-cols-4 sm:grid-cols-4 gap-2.5">
+                    {sortedAccounts.map((acc) => {
+                      const isSelected = toAccountId === acc.id;
+                      const isDisabled = fromAccountId === acc.id;
+                      return (
+                        <button
+                          key={acc.id}
+                          type="button"
+                          title={acc.name}
+                          disabled={isDisabled}
+                          onClick={() => setToAccountId(acc.id)}
+                          className={`h-14 sm:h-16 rounded-2xl border-2 border-[#121212] transition-all flex items-center justify-center p-1.5 active:translate-x-[1px] active:translate-y-[1px] ${
+                            isDisabled
+                              ? 'opacity-25 bg-gray-100 cursor-not-allowed shadow-none'
+                              : isSelected
+                              ? 'bg-[#3B82F6] shadow-[3px_3px_0px_#121212] ring-2 ring-blue-400 scale-[1.03]'
+                              : 'bg-[#FAF9F6] hover:bg-slate-100 shadow-[2px_2px_0px_#121212]'
+                          }`}
+                        >
+                          <BankLogo name={acc.name} size="xl" className="shadow-xs" />
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -282,25 +288,27 @@ export const QuickEntryDrawer: React.FC<QuickEntryDrawerProps> = ({
                   <label className="text-[10px] font-black uppercase text-gray-500 tracking-wider block mb-2">
                     {type === 'EXPENSE' ? 'PAY FROM WALLET' : 'DEPOSIT TO WALLET'}
                   </label>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-3 gap-2">
-                    {accounts.map((acc) => {
+                  <div className="grid grid-cols-4 sm:grid-cols-4 gap-2.5">
+                    {sortedAccounts.map((acc) => {
                       const isSelected = type === 'EXPENSE' ? fromAccountId === acc.id : toAccountId === acc.id;
                       return (
                         <button
                           key={acc.id}
                           type="button"
+                          title={acc.name}
                           onClick={() => {
                             if (type === 'EXPENSE') setFromAccountId(acc.id);
                             else setToAccountId(acc.id);
                           }}
-                          className={`py-2 px-2 rounded-xl border-2 border-[#121212] text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                          className={`h-14 sm:h-16 rounded-2xl border-2 border-[#121212] transition-all flex items-center justify-center p-1.5 active:translate-x-[1px] active:translate-y-[1px] ${
                             isSelected
-                              ? getThemeColorClass()
-                              : 'bg-white text-[#121212] hover:bg-slate-100 shadow-[1px_1px_0px_#121212]'
+                              ? type === 'EXPENSE'
+                                ? 'bg-[#FF5722] shadow-[3px_3px_0px_#121212] ring-2 ring-orange-400 scale-[1.03]'
+                                : 'bg-[#10B981] shadow-[3px_3px_0px_#121212] ring-2 ring-emerald-400 scale-[1.03]'
+                              : 'bg-[#FAF9F6] hover:bg-slate-100 shadow-[2px_2px_0px_#121212]'
                           }`}
                         >
-                          <BankLogo name={acc.name} size="sm" />
-                          <span className="truncate">{acc.name}</span>
+                          <BankLogo name={acc.name} size="xl" className="shadow-xs" />
                         </button>
                       );
                     })}

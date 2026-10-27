@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useMemo, useOptimistic, useTransition } from 'react';
 import { Account, Category, ExtendedTransaction, TransactionInput } from '@/types';
 import { createTransactionAction } from '@/actions/transactions';
+import { sortAccounts } from '@/lib/accountUtils';
 import { AccountCard } from './AccountCard';
 import { QuickEntryDrawer } from './QuickEntryDrawer';
 import { EditBalancesModal } from './EditBalancesModal';
@@ -55,12 +56,12 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
 
   // Optimistic state sync for zero perceived latency (0ms UI update)
   const [state, setOptimisticState] = useOptimistic<DashboardState, TransactionInput>(
-    { accounts: initialAccounts, transactions: initialTransactions },
+    { accounts: sortAccounts(initialAccounts), transactions: initialTransactions },
     (currentState, newTxInput) => {
       const { type, amount, fromAccountId, toAccountId, categoryId, note } = newTxInput;
 
       // 1. Update Accounts balances optimistically
-      const updatedAccounts = currentState.accounts.map((acc) => {
+      const updatedAccounts = sortAccounts(currentState.accounts.map((acc) => {
         let balance = parseFloat(acc.currentBalance || '0');
         if (type === 'EXPENSE' && acc.id === fromAccountId) {
           balance -= amount;
@@ -74,7 +75,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({
           ...acc,
           currentBalance: balance.toFixed(2),
         };
-      });
+      }));
 
       // 2. Prepend optimistic transaction
       const accountMap = new Map(updatedAccounts.map((a) => [a.id, a]));
